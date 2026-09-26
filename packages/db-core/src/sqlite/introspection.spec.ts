@@ -1,10 +1,10 @@
 import { TableDetailsSchema, type Session } from '@strata/contracts'
 import { afterEach, describe, expect, it } from 'vitest'
 import { isAdapterError } from '../normalization'
-import { createSqliteAdapter } from './adapter'
 import {
   collect,
   createTempDatabase,
+  createTestAdapter,
   queryRequest,
   removeTempDirs,
   sqliteProfile,
@@ -36,7 +36,7 @@ const SCHEMA = `
   INSERT INTO authors (name) VALUES ('Ursula');
 `
 
-const adapter = createSqliteAdapter()
+const adapter = createTestAdapter()
 const sessions: Session[] = []
 
 async function open(setupSql = SCHEMA): Promise<string> {

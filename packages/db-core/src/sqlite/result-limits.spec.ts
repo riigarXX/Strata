@@ -2,18 +2,18 @@ import { QueryEventSchema, type QueryEvent, type Session } from '@strata/contrac
 import { afterEach, describe, expect, it } from 'vitest'
 import { MAX_CELL_BYTES, MAX_CHUNK_BYTES } from '../result-limits'
 import { liveBytes } from '../test-live-memory'
-import { createSqliteAdapter } from './adapter'
 import {
   collect,
   COUNT_TO,
   createTempDatabase,
+  createTestAdapter,
   eventsOfType,
   queryRequest,
   removeTempDirs,
   sqliteProfile,
 } from './test-support'
 
-const adapter = createSqliteAdapter()
+const adapter = createTestAdapter()
 const sessions: Session[] = []
 
 async function open() {

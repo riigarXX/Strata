@@ -38,11 +38,13 @@ import * as introspection from './introspection'
 // ADR 0003: RETURNING and the rest of what the adapter relies on arrive in 3.35.
 export const SQLITE_MINIMUM_VERSION = '3.35.0'
 
-export interface SqliteAdapterOptions {
+export interface SqliteEngineOptions {
   readonly minimumVersion?: string
+  // The worker reopening a session after being replaced must keep the id the caller already holds.
+  readonly newSessionId?: () => SessionId
 }
 
-// better-sqlite3 is synchronous and cannot interrupt a step, so cancel is only honored between chunks and statements.
+// The engine runs inside the worker, where better-sqlite3 stays synchronous: cancel is honored between chunks and statements, and the adapter in the main thread enforces it immediately (see adapter.ts).
 const CAPABILITIES: AdapterCapabilities = {
   cancellation: true,
   cancellationMode: 'cooperative',
@@ -158,8 +160,9 @@ function openDatabase(
   }
 }
 
-export function createSqliteAdapter(options: SqliteAdapterOptions = {}): DatabaseAdapter {
+export function createSqliteEngine(options: SqliteEngineOptions = {}): DatabaseAdapter {
   const minimumVersion = options.minimumVersion ?? SQLITE_MINIMUM_VERSION
+  const newSessionId = options.newSessionId ?? randomUUID
   const sessions = new Map<SessionId, SqliteSession>()
   const runs = new Map<RequestId, ActiveRun>()
 
@@ -291,7 +294,7 @@ export function createSqliteAdapter(options: SqliteAdapterOptions = {}): Databas
           minimumVersion,
           context,
         )
-        const sessionId = randomUUID()
+        const sessionId = newSessionId()
         sessions.set(sessionId, { sessionId, db, context, activeRun: undefined })
         return Promise.resolve({
           sessionId,

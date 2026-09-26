@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, dialog, nativeTheme, protocol, safeStorage, session } from 'electron'
+import sqliteWorkerPath from '@strata/db-core/sqlite/worker?modulePath'
 import { createAppServices } from './app-services'
 import { publishAiProgress } from './ipc/ai-events'
 import { publishHistoryChanges } from './ipc/history-events'
@@ -65,6 +66,7 @@ app.whenReady().then(async () => {
   } = createAppServices({
     userDataPath: app.getPath('userData'),
     safeStorage,
+    sqliteWorkerPath,
     showOpenDialog: (options) =>
       mainWindow ? dialog.showOpenDialog(mainWindow, options) : dialog.showOpenDialog(options),
   })

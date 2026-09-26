@@ -5,11 +5,12 @@ import Database from 'better-sqlite3'
 import { afterEach, describe, expect, it } from 'vitest'
 import type { DatabaseAdapter } from '../adapter'
 import { isAdapterError } from '../normalization'
-import { createSqliteAdapter, isSupportedSqliteVersion } from './adapter'
+import { isSupportedSqliteVersion } from './adapter'
 import {
   collect,
   COUNT_TO,
   createTempDatabase,
+  createTestAdapter,
   eventsOfType,
   queryRequest,
   removeTempDirs,
@@ -21,7 +22,7 @@ const SEED = `
   INSERT INTO people (name, age, active) VALUES ('Ada', 36, 1), ('Linus', 54, 0), ('Grace', 85, 1);
 `
 
-const adapter: DatabaseAdapter = createSqliteAdapter()
+const adapter: DatabaseAdapter = createTestAdapter()
 const sessions: Session[] = []
 
 async function open(setupSql = SEED, readOnly = false) {
@@ -59,7 +60,7 @@ describe('capabilities', () => {
     expect(adapter.engine).toBe('sqlite')
     expect(adapter.capabilities).toEqual({
       cancellation: true,
-      cancellationMode: 'cooperative',
+      cancellationMode: 'immediate',
       schemas: false,
       explain: false,
       transactions: true,
@@ -96,7 +97,7 @@ describe('connection', () => {
   })
 
   it('rejects with unsupported_version when the library is older than the minimum', async () => {
-    const strict = createSqliteAdapter({ minimumVersion: '99.0.0' })
+    const strict = createTestAdapter({ minimumVersion: '99.0.0' })
     const { filePath } = createTempDatabase(SEED)
     const result = await strict.testConnection(sqliteProfile(filePath))
     expect(result).toMatchObject({ ok: false, error: { code: 'unsupported_version' } })
@@ -749,5 +750,71 @@ describe('error hygiene', () => {
       expect(message).not.toContain(dir)
       expect(message).not.toContain('fixture.sqlite')
     }
+  })
+})
+
+describe('a heavy single-step statement', () => {
+  // One aggregate row: SQLite spends seconds inside a single step, so nothing between rows or chunks ever runs.
+  const HEAVY = `WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c WHERE x < 200000000) SELECT count(*), sum(x) FROM c`
+  const IMMEDIATE_MS = 1500
+
+  it('is cancelled at once, not when the step finishes, and the session keeps working', async () => {
+    const { session } = await open()
+    const request = queryRequest(session.sessionId, HEAVY)
+    const startedAt = performance.now()
+    const events: QueryEvent[] = []
+    const consuming = (async () => {
+      for await (const event of adapter.execute(request)) events.push(event)
+    })()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(await adapter.cancel(request.requestId)).toEqual({
+      requestId: request.requestId,
+      outcome: 'requested',
+    })
+    await consuming
+    expect(performance.now() - startedAt).toBeLessThan(IMMEDIATE_MS)
+    expect(events).toEqual([{ type: 'cancelled', requestId: request.requestId, statementIndex: 0 }])
+
+    const after = await collect(adapter.execute(queryRequest(session.sessionId, 'SELECT 1 AS one')))
+    expect(eventsOfType(after, 'chunk')[0]?.rows).toEqual([[1]])
+    expect(last(after)).toMatchObject({ type: 'done' })
+  })
+
+  it('times out at once, not when the step finishes', async () => {
+    const { session } = await open()
+    const startedAt = performance.now()
+    const events = await collect(
+      adapter.execute(queryRequest(session.sessionId, HEAVY, { timeoutMs: 100 })),
+    )
+    expect(performance.now() - startedAt).toBeLessThan(IMMEDIATE_MS)
+    expect(last(events)).toMatchObject({
+      type: 'error',
+      statementIndex: 0,
+      error: { code: 'timeout', retryable: true },
+    })
+  })
+
+  it('keeps the event loop free while the step runs', async () => {
+    const { session } = await open()
+    const request = queryRequest(session.sessionId, HEAVY, { timeoutMs: 700 })
+    const consuming = collect(adapter.execute(request))
+    let worstGapMs = 0
+    let previous = performance.now()
+    const ticker = setInterval(() => {
+      const now = performance.now()
+      worstGapMs = Math.max(worstGapMs, now - previous)
+      previous = now
+    }, 10)
+    await consuming
+    clearInterval(ticker)
+    expect(worstGapMs).toBeLessThan(200)
+  })
+
+  it('rolls back an open transaction when the stuck worker is replaced', async () => {
+    const { session } = await open()
+    await adapter.begin(session.sessionId)
+    expect(adapter.transactionState(session.sessionId)).toBe('active')
+    await collect(adapter.execute(queryRequest(session.sessionId, HEAVY, { timeoutMs: 100 })))
+    expect(adapter.transactionState(session.sessionId)).toBe('none')
   })
 })

@@ -1,9 +1,38 @@
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { QueryEvent, QueryRequest } from '@strata/contracts'
 import Database from 'better-sqlite3'
-import type { ResolvedSqliteProfile } from '../adapter'
+import { buildSync } from 'esbuild'
+import type { DatabaseAdapter, ResolvedSqliteProfile } from '../adapter'
+import { createSqliteAdapter, type SqliteAdapterOptions } from './adapter'
+
+let workerPath: string | undefined
+
+// The worker runs as plain JavaScript in a real thread, so tests bundle it once. The output lives next to the package so `better-sqlite3` (left external, as in the desktop build) resolves from its node_modules.
+export function sqliteWorkerPath(): string {
+  if (!workerPath) {
+    const outfile = fileURLToPath(
+      new URL('../../node_modules/.cache/sqlite-worker/worker.cjs', import.meta.url),
+    )
+    buildSync({
+      entryPoints: [fileURLToPath(new URL('./worker.ts', import.meta.url))],
+      outfile,
+      bundle: true,
+      platform: 'node',
+      format: 'cjs',
+      external: ['better-sqlite3'],
+      logLevel: 'silent',
+    })
+    workerPath = outfile
+  }
+  return workerPath
+}
+
+export function createTestAdapter(options: Partial<SqliteAdapterOptions> = {}): DatabaseAdapter {
+  return createSqliteAdapter({ workerPath: sqliteWorkerPath(), ...options })
+}
 
 const tempDirs: string[] = []
 

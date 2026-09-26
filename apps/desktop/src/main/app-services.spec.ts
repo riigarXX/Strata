@@ -16,6 +16,7 @@ describe('createAppServices', () => {
     const { adapters } = createAppServices({
       userDataPath: '/user-data',
       safeStorage,
+      sqliteWorkerPath: 'unused-in-this-test',
       showOpenDialog: vi.fn(),
     })
 
@@ -31,6 +32,7 @@ describe('createAppServices', () => {
         encryptString: (plain: string) => Buffer.from(plain),
         decryptString: (encrypted: Buffer) => encrypted.toString(),
       },
+      sqliteWorkerPath: 'unused-in-this-test',
       showOpenDialog: vi.fn(),
     })
 
@@ -57,6 +59,7 @@ describe('createAppServices: preferencias e historial', () => {
         encryptString: (plain: string) => Buffer.from(plain),
         decryptString: (encrypted: Buffer) => encrypted.toString(),
       },
+      sqliteWorkerPath: 'unused-in-this-test',
       showOpenDialog: vi.fn(),
     })
     return { ...services, userDataPath }

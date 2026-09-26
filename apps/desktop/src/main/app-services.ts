@@ -38,6 +38,8 @@ import {
 export interface AppServicesOptions {
   userDataPath: string
   safeStorage: SafeStorageLike
+  // Compiled worker that hosts better-sqlite3 (see index.ts); the adapter only spawns it on the first SQLite connection.
+  sqliteWorkerPath: string
   showOpenDialog(options: OpenDialogOptions): Promise<OpenDialogReturnValue>
 }
 
@@ -54,11 +56,12 @@ export interface AppServices {
 export function createAppServices({
   userDataPath,
   safeStorage,
+  sqliteWorkerPath,
   showOpenDialog,
 }: AppServicesOptions): AppServices {
   const adapters = new AdapterRegistry()
   adapters.register(createPostgresAdapter())
-  adapters.register(createSqliteAdapter())
+  adapters.register(createSqliteAdapter({ workerPath: sqliteWorkerPath }))
   const approvedSqlitePaths = createApprovedSqlitePaths()
 
   // Perezoso: `safeStorage` (y con él el diálogo de Keychain) solo se toca al guardar o leer una password.

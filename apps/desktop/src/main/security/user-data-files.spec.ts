@@ -24,7 +24,12 @@ afterEach(async () => {
 async function populatedUserData() {
   const userDataPath = await mkdtemp(join(tmpdir(), 'strata-user-data-'))
   directories.push(userDataPath)
-  const services = createAppServices({ userDataPath, safeStorage, showOpenDialog: vi.fn() })
+  const services = createAppServices({
+    userDataPath,
+    safeStorage,
+    sqliteWorkerPath: 'unused-in-this-test',
+    showOpenDialog: vi.fn(),
+  })
 
   const profile = await services.connectionManager.createProfile({
     engine: 'postgres',
@@ -95,6 +100,7 @@ describe('archivos de userData tras una sesión que guarda una password', () => 
     const { connectionManager } = createAppServices({
       userDataPath,
       safeStorage,
+      sqliteWorkerPath: 'unused-in-this-test',
       showOpenDialog: vi.fn(),
     })
 
