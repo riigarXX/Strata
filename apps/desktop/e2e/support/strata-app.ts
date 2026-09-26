@@ -10,6 +10,7 @@ import {
   type Page,
 } from '@playwright/test'
 
+const CLOSE_GRACE_MS = 10_000
 const APP_DIR = path.resolve(__dirname, '../..')
 const FIXTURE_SCRIPT = path.join(__dirname, 'create-fixture-db.mjs')
 const QUERY_FIXTURE_SCRIPT = path.join(__dirname, 'query-fixture-db.mjs')
@@ -111,7 +112,15 @@ async function launchStrata(userDataDir: string): Promise<StrataApp> {
     async close() {
       const child = electronApp.process()
       try {
-        await electronApp.close()
+        // Un hilo de SQLite abandonado en mitad de un paso nativo puede retrasar el cierre ordenado: pasado el plazo se mata el proceso.
+        let timer: NodeJS.Timeout | undefined
+        await Promise.race([
+          electronApp.close(),
+          new Promise<void>((resolve) => {
+            timer = setTimeout(resolve, CLOSE_GRACE_MS)
+          }),
+        ])
+        clearTimeout(timer)
       } finally {
         if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
       }

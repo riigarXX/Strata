@@ -810,11 +810,91 @@ describe('a heavy single-step statement', () => {
     expect(worstGapMs).toBeLessThan(200)
   })
 
-  it('rolls back an open transaction when the stuck worker is replaced', async () => {
-    const { session } = await open()
-    await adapter.begin(session.sessionId)
-    expect(adapter.transactionState(session.sessionId)).toBe('active')
-    await collect(adapter.execute(queryRequest(session.sessionId, HEAVY, { timeoutMs: 100 })))
-    expect(adapter.transactionState(session.sessionId)).toBe('none')
+  // Each statement is a step of a few hundred ms, far longer than the 1 ms grace: the worker cannot acknowledge the abort in time, but it does between statements.
+  const SLOW_STEPS = Array.from(
+    { length: 40 },
+    () =>
+      'WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM c WHERE x < 3000000) SELECT count(*) FROM c;',
+  ).join('\n')
+
+  async function inTransaction(transactionAbortGraceMs: number, abortGraceMs: number) {
+    const local = createTestAdapter({ abortGraceMs, transactionAbortGraceMs })
+    const database = createTempDatabase(SEED)
+    const session = await local.connect(sqliteProfile(database.filePath))
+    sessions.push(session)
+    await local.begin(session.sessionId)
+    await collect(
+      local.execute(
+        queryRequest(session.sessionId, "INSERT INTO people (name) VALUES ('Pending')"),
+      ),
+    )
+    const pending = async () =>
+      eventsOfType(
+        await collect(
+          local.execute(
+            queryRequest(session.sessionId, "SELECT name FROM people WHERE name = 'Pending'"),
+          ),
+        ),
+        'chunk',
+      ).flatMap((chunk) => chunk.rows)
+    return { local, session, pending }
+  }
+
+  async function cancelAfter(
+    local: DatabaseAdapter,
+    request: ReturnType<typeof queryRequest>,
+    delayMs: number,
+  ) {
+    const consuming = collect(local.execute(request))
+    await new Promise((resolve) => setTimeout(resolve, delayMs))
+    await local.cancel(request.requestId)
+    return consuming
+  }
+
+  it('keeps the transaction when cancelling a statement whose steps outlast the grace', async () => {
+    const { local, session, pending } = await inTransaction(10_000, 1)
+    const events = await cancelAfter(local, queryRequest(session.sessionId, SLOW_STEPS), 100)
+    expect(events.map((event) => event.type)).toEqual(['cancelled'])
+    expect(local.transactionState(session.sessionId)).toBe('active')
+    expect(await pending()).toEqual([['Pending']])
+    expect((await local.rollback(session.sessionId)).transaction).toBe('none')
+    expect(await pending()).toEqual([])
+    await local.disconnect(session.sessionId)
+  })
+
+  it('keeps the transaction when a slow statement times out', async () => {
+    const { local, session, pending } = await inTransaction(10_000, 1)
+    const events = await collect(
+      local.execute(queryRequest(session.sessionId, SLOW_STEPS, { timeoutMs: 100 })),
+    )
+    expect(last(events)).toMatchObject({ type: 'error', error: { code: 'timeout' } })
+    expect(events.some((event) => event.type === 'notice')).toBe(false)
+    expect(local.transactionState(session.sessionId)).toBe('active')
+    expect(await pending()).toEqual([['Pending']])
+    await local.disconnect(session.sessionId)
+  })
+
+  it('rolls the transaction back and says so when a single step cannot be interrupted', async () => {
+    const { local, session, pending } = await inTransaction(200, 50)
+    const events = await cancelAfter(local, queryRequest(session.sessionId, HEAVY), 100)
+    expect(events.map((event) => event.type)).toEqual(['notice', 'cancelled'])
+    expect(events[0]).toMatchObject({
+      type: 'notice',
+      level: 'warning',
+      message: 'The statement could not be interrupted: the transaction was rolled back',
+    })
+    expect(local.transactionState(session.sessionId)).toBe('none')
+    expect(await pending()).toEqual([])
+    await local.disconnect(session.sessionId)
+  })
+
+  it('rolls back an open transaction when the stuck worker is replaced on timeout', async () => {
+    const { local, session } = await inTransaction(200, 50)
+    const events = await collect(
+      local.execute(queryRequest(session.sessionId, HEAVY, { timeoutMs: 100 })),
+    )
+    expect(events.map((event) => event.type)).toEqual(['notice', 'error'])
+    expect(local.transactionState(session.sessionId)).toBe('none')
+    await local.disconnect(session.sessionId)
   })
 })

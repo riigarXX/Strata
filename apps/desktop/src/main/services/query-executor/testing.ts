@@ -25,6 +25,8 @@ export interface StreamingAdapterOptions {
   throwAtRead?: number
   /** El iterable termina sin evento terminal tras el último chunk. */
   endWithoutTerminal?: boolean
+  /** Aviso que emite justo antes de `cancelled` (p. ej. la transacción que se perdió al abandonar el hilo). */
+  noticeBeforeCancelled?: string
 }
 
 export interface StreamingAdapter extends DatabaseAdapter {
@@ -41,6 +43,19 @@ export function createStreamingAdapter(options: StreamingAdapterOptions = {}): S
   const base = createFakeAdapter('sqlite')
   const cancelledIds = new Set<RequestId>()
   let release: (() => void) | undefined
+
+  function* cancelledEvents(requestId: RequestId): Generator<QueryEvent> {
+    if (options.noticeBeforeCancelled !== undefined) {
+      yield {
+        type: 'notice',
+        requestId,
+        statementIndex: 0,
+        level: 'warning',
+        message: options.noticeBeforeCancelled,
+      }
+    }
+    yield { type: 'cancelled', requestId, statementIndex: 0 }
+  }
 
   const adapter: StreamingAdapter = {
     ...base,
@@ -60,7 +75,7 @@ export function createStreamingAdapter(options: StreamingAdapterOptions = {}): S
         for (let index = 0; index < total; index++) {
           if (options.throwAtRead === index) throw new Error('driver exploded near secret-host')
           if (cancelledIds.has(requestId)) {
-            yield { type: 'cancelled', requestId, statementIndex: 0 }
+            yield* cancelledEvents(requestId)
             return
           }
           if (options.hangAfterChunk === index) {
@@ -68,7 +83,7 @@ export function createStreamingAdapter(options: StreamingAdapterOptions = {}): S
               release = resolve
             })
             if (cancelledIds.has(requestId)) {
-              yield { type: 'cancelled', requestId, statementIndex: 0 }
+              yield* cancelledEvents(requestId)
               return
             }
           }

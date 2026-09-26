@@ -349,6 +349,19 @@ describe('QueryExecutor: cancelación', () => {
 
     expect(sink.events.slice(4).map((e) => e.type)).toEqual(['cancelled'])
   })
+
+  it('tras cancelar sí se envían los avisos del adapter, antes del evento terminal', async () => {
+    const { executor, sink, owner, terminal } = setup({
+      chunks: 50,
+      noticeBeforeCancelled: 'The transaction was rolled back',
+    })
+    executor.execute(request(), sink)
+    await until(() => sink.ofType('chunk').length === 4)
+    await executor.cancel('req-1', owner)
+    await until(() => terminal().length > 0)
+
+    expect(sink.events.slice(4).map((e) => e.type)).toEqual(['notice', 'cancelled'])
+  })
 })
 
 describe('QueryExecutor: solicitante que desaparece', () => {

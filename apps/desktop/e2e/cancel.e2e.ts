@@ -22,6 +22,21 @@ const SLOW_SQL = Array.from(
     'with recursive c(x) as (select 1 union all select x+1 from c where x < 1000000) select count(*) from c;',
 ).join('\n')
 
+// Cada paso dura bastante más que la gracia de 150 ms del adapter (que aquí no basta para confirmar la cancelación), pero termina mucho antes de la gracia de una sesión con transacción.
+// Así el caso no depende de la velocidad de la máquina: en un CI lento los pasos solo duran más, sin llegar nunca al tope.
+const TRANSACTION_SLOW_SQL = Array.from(
+  { length: STATEMENT_COUNT },
+  () =>
+    'with recursive c(x) as (select 1 union all select x+1 from c where x < 3000000) select count(*) from c;',
+).join('\n')
+
+// Un único paso nativo que no termina en todo el test: no hay manera de interrumpirlo y hay que abandonar el hilo.
+const UNINTERRUPTIBLE_SQL =
+  'with recursive c(x) as (select 1 union all select x+1 from c where x < 2000000000) select count(*) from c'
+
+// Margen sobre la gracia de cancelación con transacción abierta (5 s) antes de abandonar el hilo.
+const ABANDON_TIMEOUT_MS = 25_000
+
 /** Sentencias que llegaron a terminar según el resumen de la ejecución (pestaña «Mensajes»). */
 async function statementsDone(page: Page): Promise<number> {
   const summary = page.locator('[data-part="run-summary"]')
@@ -143,7 +158,7 @@ test.describe('cancelación de consultas', () => {
     expect(app.errors).toEqual([])
   })
 
-  test('cancelar dentro de una transacción no la cierra: sigue activa y se puede revertir', async ({
+  test('cancelar una consulta interrumpible dentro de una transacción no la cierra: sigue activa y se puede revertir', async ({
     launchApp,
     fixtureDb,
   }) => {
@@ -154,14 +169,44 @@ test.describe('cancelación de consultas', () => {
     await toolbarButton(page, 'Iniciar transacción').click()
     await expect(transactionChip(page)).toHaveAttribute('data-state', 'active')
 
-    await submitSql(page, 'Consulta 1', SLOW_SQL)
+    await submitSql(page, 'Consulta 1', TRANSACTION_SLOW_SQL)
     await expect(executionStatus(page)).toHaveAttribute('data-state', 'running')
     await toolbarButton(page, 'Cancelar').click()
     await expect(executionStatus(page)).toHaveAttribute('data-state', 'cancelled')
     await expect(transactionChip(page)).toHaveAttribute('data-state', 'active')
+    const log = await openMessages(page)
+    await expect(log).not.toContainText('could not be interrupted')
 
     await toolbarButton(page, 'Revertir').click()
     await expect(transactionChip(page)).toHaveAttribute('data-state', 'none')
+    expect(app.errors).toEqual([])
+  })
+
+  test('cancelar una sentencia de un solo paso ininterrumpible revierte la transacción y lo avisa', async ({
+    launchApp,
+    fixtureDb,
+  }) => {
+    const app = await launchApp()
+    const { page } = app
+    await connectFixture(app, fixtureDb)
+
+    await toolbarButton(page, 'Iniciar transacción').click()
+    await expect(transactionChip(page)).toHaveAttribute('data-state', 'active')
+
+    await submitSql(page, 'Consulta 1', UNINTERRUPTIBLE_SQL)
+    await expect(executionStatus(page)).toHaveAttribute('data-state', 'running')
+    await toolbarButton(page, 'Cancelar').click()
+    await expect(executionStatus(page)).toHaveAttribute('data-state', 'cancelled', {
+      timeout: ABANDON_TIMEOUT_MS,
+    })
+    await expect(transactionChip(page)).toHaveAttribute('data-state', 'none')
+    const log = await openMessages(page)
+    await expect(log).toContainText(
+      'The statement could not be interrupted: the transaction was rolled back',
+    )
+
+    await runSql(page, 'Consulta 1', 'select 1 as uno')
+    await expect(executionStatus(page)).toHaveAttribute('data-state', 'done')
     expect(app.errors).toEqual([])
   })
 

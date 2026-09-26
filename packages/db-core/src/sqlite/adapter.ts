@@ -37,9 +37,12 @@ export interface SqliteAdapterOptions {
   readonly minimumVersion?: string
   // How long a worker gets to stop by itself after cancel or timeout before it is terminated and replaced.
   readonly abortGraceMs?: number
+  // Same, but for a session with an open transaction: replacing the worker rolls it back, so it is worth waiting for a step that is merely slow.
+  readonly transactionAbortGraceMs?: number
 }
 
 const DEFAULT_ABORT_GRACE_MS = 150
+const DEFAULT_TRANSACTION_ABORT_GRACE_MS = 5000
 
 // better-sqlite3 runs in a worker thread: cancel and timeout are acted on by the main thread at once, and a statement that cannot be interrupted is abandoned by terminating its thread.
 const CAPABILITIES: AdapterCapabilities = {
@@ -50,6 +53,9 @@ const CAPABILITIES: AdapterCapabilities = {
   transactions: true,
   readOnlyMode: true,
 }
+
+const TRANSACTION_LOST_MESSAGE =
+  'The statement could not be interrupted: the transaction was rolled back'
 
 const noSession = (): AdapterError =>
   new AdapterError(createNormalizedError('no_session', DEFAULT_ERROR_MESSAGES.no_session))
@@ -143,6 +149,10 @@ interface SqliteSession {
 
 export function createSqliteAdapter(options: SqliteAdapterOptions): DatabaseAdapter {
   const graceMs = options.abortGraceMs ?? DEFAULT_ABORT_GRACE_MS
+  const transactionGraceMs = Math.max(
+    graceMs,
+    options.transactionAbortGraceMs ?? DEFAULT_TRANSACTION_ABORT_GRACE_MS,
+  )
   const sessions = new Map<SessionId, SqliteSession>()
   const runs = new Map<RequestId, ActiveRun>()
 
@@ -180,11 +190,18 @@ export function createSqliteAdapter(options: SqliteAdapterOptions): DatabaseAdap
     }
   }
 
-  // Waits for the worker to acknowledge the abort; if it is inside an uninterruptible step it never does, and the thread is abandoned.
-  async function stopWorker(session: SqliteSession, requestId: RequestId): Promise<void> {
+  // Waits for the worker to acknowledge the abort. A worker inside a step that never returns in time is abandoned; that costs the open transaction, so the result says whether it happened.
+  async function stopWorker(
+    session: SqliteSession,
+    requestId: RequestId,
+  ): Promise<{ readonly transactionLost: boolean }> {
     const client = session.client
+    const inTransaction = client.transaction !== 'none'
     const timer = deferred<'stuck'>()
-    const handle = setTimeout(() => timer.resolve('stuck'), graceMs)
+    const handle = setTimeout(
+      () => timer.resolve('stuck'),
+      inTransaction ? transactionGraceMs : graceMs,
+    )
     const acknowledged = client.request({ op: 'abort', requestId }).then(
       () => 'stopped' as const,
       () => 'stopped' as const,
@@ -193,6 +210,26 @@ export function createSqliteAdapter(options: SqliteAdapterOptions): DatabaseAdap
     clearTimeout(handle)
     if (outcome === 'stuck') {
       await replaceWorker(session)
+      return { transactionLost: inTransaction }
+    }
+    return { transactionLost: false }
+  }
+
+  // Cancelling never closes a transaction (ADR 0004) unless the statement cannot be interrupted; then the user is told.
+  async function* stopAndReport(
+    session: SqliteSession,
+    requestId: RequestId,
+    statementIndex: number,
+  ): AsyncGenerator<QueryEvent, void> {
+    const { transactionLost } = await stopWorker(session, requestId)
+    if (transactionLost) {
+      yield {
+        type: 'notice',
+        requestId,
+        statementIndex,
+        level: 'warning',
+        message: TRANSACTION_LOST_MESSAGE,
+      }
     }
   }
 
@@ -241,7 +278,7 @@ export function createSqliteAdapter(options: SqliteAdapterOptions): DatabaseAdap
       await client.request({ op: 'open', request })
       for (;;) {
         if (run.cancelRequested) {
-          await stopWorker(session, requestId)
+          yield* stopAndReport(session, requestId, statementIndex)
           finished = true
           yield { type: 'cancelled', requestId, statementIndex }
           return
@@ -262,7 +299,7 @@ export function createSqliteAdapter(options: SqliteAdapterOptions): DatabaseAdap
         if (handle) clearTimeout(handle)
 
         if (outcome === 'cancelled' || outcome === 'timeout') {
-          await stopWorker(session, requestId)
+          yield* stopAndReport(session, requestId, statementIndex)
           finished = true
           yield outcome === 'cancelled'
             ? { type: 'cancelled', requestId, statementIndex }

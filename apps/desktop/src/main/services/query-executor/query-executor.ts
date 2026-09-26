@@ -218,8 +218,8 @@ export function createQueryExecutor({
         }
         if (isTerminal(event)) return terminalEvent(run, event)
 
-        // Tras cancelar solo interesa el evento terminal: lo que el adapter aún emita ya no sirve al renderer.
-        if (run.cancelReason !== undefined) continue
+        // Tras cancelar solo interesa el evento terminal y los avisos (p. ej. que la transacción se revirtió): filas y resúmenes ya no sirven al renderer.
+        if (run.cancelReason !== undefined && event.type !== 'notice') continue
         if (!sink.isAlive()) {
           void requestCancel(run, 'renderer_gone')
           continue

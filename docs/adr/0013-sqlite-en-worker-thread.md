@@ -26,14 +26,15 @@
 
 - `packages/db-core/src/sqlite/engine.ts` es el adapter síncrono de siempre; `worker.ts` lo aloja y `adapter.ts` (main) es el `DatabaseAdapter` público, que habla con el worker por un protocolo petición/respuesta (`worker-protocol.ts`).
 - `execute` es un stream dirigido por main: `open`, un `pull` por evento (el worker nunca se adelanta al consumidor) y `abort`.
-- `cancel` y `timeoutMs` se resuelven **en main**: se emite `cancelled` / `timeout` de inmediato y se pide al worker que aborte. Si no confirma en 150 ms (está dentro de un paso de SQLite), se abandona el hilo con `terminate()` y se abre uno nuevo con el mismo `sessionId` y perfil.
+- `cancel` y `timeoutMs` se resuelven **en main**: se emite `cancelled` / `timeout` de inmediato y se pide al worker que aborte. Si no confirma en la gracia (150 ms; **5 s si la sesión tiene una transacción abierta**, `transactionAbortGraceMs`) porque está dentro de un paso de SQLite, se abandona el hilo con `terminate()` y se abre uno nuevo con el mismo `sessionId` y perfil.
 - El estado de transacción se copia en cada respuesta del worker, así que `transactionState()` sigue siendo síncrono.
 - `cancellationMode` pasa a `'immediate'`.
 
 ## Consecuencias
 
 - Cancelar o agotar el tiempo de una sentencia pesada de un solo paso ya no espera a que termine. Tests en `sqlite/adapter.spec.ts` («a heavy single-step statement»).
-- Si hubo que abandonar el worker, una transacción abierta se pierde (equivale a un rollback) y `transactionState()` pasa a `none`.
+- **Cancelar no cierra la transacción (ADR 0004) mientras la sentencia sea interrumpible**: si el worker atiende el abort (entre filas, lotes o sentencias) la transacción sobrevive. Un paso que dura más de 150 ms pero termina dentro de la gracia de transacción (por ejemplo, cada sentencia de un script lento en una máquina lenta) tampoco la pierde: el worker confirma el abort al terminar el paso. Es la corrección del fallo del CI, donde con una gracia única de 150 ms un paso de ~200 ms hacía abandonar el hilo y perder la transacción.
+- Único caso inevitable: un paso de SQLite que no vuelve ni en 5 s (`better-sqlite3` no expone `sqlite3_interrupt`). Entonces se abandona el worker, la transacción abierta se pierde (equivale a un rollback), `transactionState()` pasa a `none` y el adapter emite antes del evento terminal un `notice` de nivel `warning` («The statement could not be interrupted: the transaction was rolled back») que la interfaz muestra en Mensajes; el chip de transacción se actualiza con el estado del evento `cancelled` / `error`. El coste es que, en una transacción, cancelar un paso ininterrumpible tarda hasta esos 5 s en responder.
 - El hilo abandonado sigue consumiendo CPU hasta que SQLite devuelva el control (no se puede interrumpir con `better-sqlite3`), y si escribía puede retener el bloqueo de escritura hasta entonces.
 - El desktop obtiene la ruta del worker con `import … from '@strata/db-core/sqlite/worker?modulePath'` (electron-vite) y se la pasa a `createSqliteAdapter({ workerPath })`.
 - Cada conexión (y cada «probar conexión») arranca un hilo: unas decenas de ms.
