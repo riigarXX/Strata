@@ -1,0 +1,47 @@
+{
+  "name": "sqlite-driver-spike",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Spike desechable: validar better-sqlite3 dentro de una app Electron empaquetada en macOS (arm64)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "dist": "electron-builder --mac --arm64"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.3.0"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "@electron/rebuild": "^3.6.0"
+  },
+  "build": {
+    "appId": "com.strata.spike.sqlite",
+    "productName": "SqliteSpike",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": ["arm64"]
+        }
+      ],
+      "category": "public.app-category.developer-tools",
+      "identity": null
+    }
+  }
+}
