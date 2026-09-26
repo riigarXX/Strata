@@ -1,0 +1,35 @@
+{
+  "name": "strata",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Strata: cliente de escritorio de bases de datos, keyboard-first",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @strata/desktop dev",
+    "build": "pnpm -r build",
+    "dist": "pnpm build && pnpm --filter @strata/desktop dist",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test && pnpm test:scripts",
+    "test:scripts": "node --test \"scripts/*.test.mjs\"",
+    "test:e2e": "pnpm build && pnpm --filter @strata/desktop test:e2e",
+    "test:integration": "pnpm --filter @strata/db-core test:integration",
+    "lint": "eslint . && node scripts/check-hardcoded-colors.mjs",
+    "lint:colors": "node scripts/check-hardcoded-colors.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@vue/eslint-config-typescript": "14.9.0",
+    "eslint": "10.11.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-vue": "10.11.0",
+    "globals": "17.12.0",
+    "prettier": "3.9.8",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.0"
+  }
+}

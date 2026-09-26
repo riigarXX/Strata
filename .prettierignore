@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-electron
+out
+release
+pnpm-lock.yaml
+spikes
+docs
+tasks
+PLAN_BBDD_CLI.md
+test-results
+playwright-report
