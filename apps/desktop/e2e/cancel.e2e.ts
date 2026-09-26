@@ -175,7 +175,7 @@ test.describe('cancelación de consultas', () => {
     await expect(executionStatus(page)).toHaveAttribute('data-state', 'cancelled')
     await expect(transactionChip(page)).toHaveAttribute('data-state', 'active')
     const log = await openMessages(page)
-    await expect(log).not.toContainText('could not be interrupted')
+    await expect(log).not.toContainText('no se pudo interrumpir')
 
     await toolbarButton(page, 'Revertir').click()
     await expect(transactionChip(page)).toHaveAttribute('data-state', 'none')
@@ -202,7 +202,7 @@ test.describe('cancelación de consultas', () => {
     await expect(transactionChip(page)).toHaveAttribute('data-state', 'none')
     const log = await openMessages(page)
     await expect(log).toContainText(
-      'The statement could not be interrupted: the transaction was rolled back',
+      'La sentencia no se pudo interrumpir: se ha revertido la transacción.',
     )
 
     await runSql(page, 'Consulta 1', 'select 1 as uno')

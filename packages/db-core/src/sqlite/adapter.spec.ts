@@ -882,6 +882,7 @@ describe('a heavy single-step statement', () => {
       type: 'notice',
       level: 'warning',
       message: 'The statement could not be interrupted: the transaction was rolled back',
+      code: 'transaction_lost',
     })
     expect(local.transactionState(session.sessionId)).toBe('none')
     expect(await pending()).toEqual([])

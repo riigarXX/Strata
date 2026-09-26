@@ -33,8 +33,13 @@ export function describeTruncation(
   return `${prefix}, el máximo configurado.`
 }
 
+const NOTICE_TEXTS: Record<NonNullable<EventOf<'notice'>['code']>, string> = {
+  transaction_lost: 'La sentencia no se pudo interrumpir: se ha revertido la transacción.',
+}
+
 export function describeNotice(event: EventOf<'notice'>): string {
-  return `Aviso de la sentencia n.º ${event.statementIndex + 1}: ${event.message}`
+  const text = event.code ? NOTICE_TEXTS[event.code] : event.message
+  return `Aviso de la sentencia n.º ${event.statementIndex + 1}: ${text}`
 }
 
 export function describeDone(event: EventOf<'done'>, timing = true): string {

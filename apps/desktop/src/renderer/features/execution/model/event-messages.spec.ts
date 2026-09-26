@@ -56,6 +56,18 @@ describe('event messages', () => {
       }),
     ).toBe('Aviso de la sentencia n.º 1: hola')
     expect(
+      describeNotice({
+        type: 'notice',
+        requestId: 'r',
+        statementIndex: 0,
+        level: 'warning',
+        message: 'The statement could not be interrupted: the transaction was rolled back',
+        code: 'transaction_lost',
+      }),
+    ).toBe(
+      'Aviso de la sentencia n.º 1: La sentencia no se pudo interrumpir: se ha revertido la transacción.',
+    )
+    expect(
       describeDone({
         type: 'done',
         requestId: 'r',

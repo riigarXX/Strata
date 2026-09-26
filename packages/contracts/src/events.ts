@@ -55,6 +55,8 @@ const NoticeEventSchema = z.strictObject({
   statementIndex,
   level: z.enum(['info', 'warning']),
   message: z.string().max(2000),
+  // Stable identifier so the UI can localize a notice whose `message` is in English.
+  code: z.enum(['transaction_lost']).optional(),
 })
 
 // One per statement of a multi-statement document (ADR 0004).

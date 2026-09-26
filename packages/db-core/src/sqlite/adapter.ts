@@ -229,6 +229,7 @@ export function createSqliteAdapter(options: SqliteAdapterOptions): DatabaseAdap
         statementIndex,
         level: 'warning',
         message: TRANSACTION_LOST_MESSAGE,
+        code: 'transaction_lost',
       }
     }
   }
