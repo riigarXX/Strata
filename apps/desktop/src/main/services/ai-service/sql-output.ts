@@ -2,6 +2,7 @@ import type { AiSqlRisk, AiSqlStatementType, AiWarning, Engine } from '@strata/c
 import { AI_SQL_MAX_LENGTH } from '@strata/contracts'
 import { analyzeSql, type AnalyzedStatement } from '@strata/db-core'
 import { aiError } from './errors'
+import { hasStatementForm } from './statement-forms'
 
 export interface ExtractedSql {
   text: string
@@ -125,6 +126,9 @@ export function classifySql(engine: Engine, extracted: ExtractedSql): Classified
   // `other` es lo que `analyzeSql` no reconoce como sentencia (prosa incluida): sin sentencia real no hay nada que abrir.
   // PRAGMA, SHOW, SET, EXPLAIN y el control de transacciones tienen su propio tipo y siguen pasando.
   if (!first || first.type === 'other') {
+    throw aiError('validation_failed', 'The model did not produce a SQL statement', false)
+  }
+  if (!hasStatementForm(first.text)) {
     throw aiError('validation_failed', 'The model did not produce a SQL statement', false)
   }
   if (rest.some((statement) => statement.type !== 'other')) {

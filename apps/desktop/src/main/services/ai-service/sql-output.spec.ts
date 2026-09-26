@@ -314,3 +314,112 @@ Esta consulta cuenta los pedidos de cada cliente.`
     expect(() => run('SELECT 1; DROP TABLE users;', 'postgres')).toThrow()
   })
 })
+
+describe('classifySql: prosa que empieza con un comando SQL', () => {
+  const prose = [
+    'Do you mean the total per customer?',
+    'Do you want me to filter by date?',
+    '¿Do you mean users? Please clarify.',
+    'Set it to zero.',
+    'Show me the users table.',
+    'Show me the users',
+    'Call me if you need more details.',
+    'Vacuum the table first.',
+    'Grant access to the admin group.',
+    'Revoke access from the guest users.',
+    'Analyze the results and tell me what you see.',
+    'Commit to the plan and see.',
+    'Begin by telling me which table.',
+    'Comment on the previous answer, please.',
+    'Execute the query yourself!',
+    'Explain the query in more detail.',
+    'Reset the password?',
+    'Copy the file to stdout.',
+    'Table of contents.',
+    'End of the story.',
+    'Release the kraken!',
+    '¿Quieres que filtre por fecha? Set the date',
+    'Do you mean… ¿los pedidos de este mes?',
+  ]
+
+  it.each(prose)('postgres: rechaza %j', (text) => {
+    expect(() => run(text, 'postgres')).toThrow()
+  })
+
+  it.each(prose)('sqlite: rechaza %j', (text) => {
+    expect(() => run(text, 'sqlite')).toThrow()
+  })
+
+  it.each([
+    ['DO $$ BEGIN PERFORM 1; END $$', 'DO $$'],
+    ['DO LANGUAGE plpgsql $$ BEGIN NULL; END $$', 'DO LANGUAGE'],
+    ["DO 'BEGIN NULL; END'", "DO '...'"],
+    ['CALL refresh_stats(1)', 'CALL'],
+    ['CALL app.refresh_stats()', 'CALL calificado'],
+    ['SET search_path = public', 'SET ='],
+    ['SET statement_timeout TO 5000', 'SET TO'],
+    ["SET LOCAL timezone TO 'UTC'", 'SET LOCAL'],
+    ["SET TIME ZONE 'UTC'", 'SET TIME ZONE'],
+    ['SET ROLE reporting', 'SET ROLE'],
+    ['SHOW search_path', 'SHOW'],
+    ['SHOW ALL', 'SHOW ALL'],
+    ['SHOW TIME ZONE', 'SHOW TIME ZONE'],
+    ['SHOW transaction isolation level', 'SHOW isolation'],
+    ['VACUUM', 'VACUUM solo'],
+    ['VACUUM users', 'VACUUM tabla'],
+    ['VACUUM (FULL, ANALYZE) public.users', 'VACUUM opciones'],
+    ['VACUUM FULL VERBOSE users', 'VACUUM FULL'],
+    ['ANALYZE users (name)', 'ANALYZE'],
+    ['GRANT SELECT ON users TO reporting', 'GRANT privilegios'],
+    ['GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO app', 'GRANT all tables'],
+    ['GRANT admins TO alice', 'GRANT rol'],
+    ['REVOKE SELECT ON users FROM reporting', 'REVOKE privilegios'],
+    ['REVOKE admins FROM alice', 'REVOKE rol'],
+    ["COMMENT ON TABLE users IS 'clientes'", 'COMMENT'],
+    ['REFRESH MATERIALIZED VIEW mv', 'REFRESH'],
+    ['RESET search_path', 'RESET'],
+    ['DISCARD ALL', 'DISCARD'],
+    ['BEGIN', 'BEGIN'],
+    ['BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE', 'BEGIN isolation'],
+    ['START TRANSACTION READ ONLY', 'START'],
+    ['COMMIT', 'COMMIT'],
+    ['END', 'END'],
+    ['ROLLBACK TO SAVEPOINT sp1', 'ROLLBACK TO'],
+    ['SAVEPOINT sp1', 'SAVEPOINT'],
+    ['RELEASE SAVEPOINT sp1', 'RELEASE'],
+    ["EXECUTE plan1(1, 'a')", 'EXECUTE'],
+    ['COPY users TO STDOUT', 'COPY'],
+    ["COPY (SELECT 1) TO '/tmp/x.csv'", 'COPY consulta'],
+    ['MERGE INTO t USING s ON t.id = s.id WHEN MATCHED THEN DELETE', 'MERGE'],
+    ['TABLE users', 'TABLE'],
+    ['VALUES (1), (2)', 'VALUES'],
+    ['REINDEX TABLE users', 'REINDEX'],
+    ['CLUSTER users USING users_pkey', 'CLUSTER'],
+    ['EXPLAIN SELECT 1', 'EXPLAIN'],
+    ['EXPLAIN (ANALYZE) SELECT 1', 'EXPLAIN opciones'],
+    ['-- nota\nSET search_path = public', 'SET tras comentario'],
+  ] as const)('postgres: acepta SQL legítimo %j (%s)', (sql: string, label: string) => {
+    expect(run(sql, 'postgres').sql, label).toBeTruthy()
+  })
+
+  it.each([
+    'PRAGMA table_info(users)',
+    'PRAGMA journal_mode = WAL',
+    'PRAGMA main.user_version',
+    'VACUUM',
+    "VACUUM INTO 'copia.db'",
+    "ATTACH DATABASE 'x.db' AS x",
+    'DETACH DATABASE x',
+    'BEGIN IMMEDIATE',
+    'COMMIT',
+    'ROLLBACK',
+    'EXPLAIN QUERY PLAN SELECT * FROM users',
+    'REPLACE INTO t (a) VALUES (1)',
+    'REINDEX users',
+    'ANALYZE',
+    'SAVEPOINT a',
+    'RELEASE a',
+  ])('sqlite: acepta SQL legítimo %j', (sql) => {
+    expect(run(sql, 'sqlite').sql).toBeTruthy()
+  })
+})
