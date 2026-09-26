@@ -1,0 +1,69 @@
+name: Package smoke
+
+# Empaqueta el .app (sin instalador ni firma) y lo lanza de verdad: comprueba por CDP la superficie de
+# window.db, la CSP de producción y los permisos. Es caro (compila y empaqueta), así que solo corre
+# cuando el cambio puede afectar a Electron, a los drivers o a la distribución, o a mano.
+on:
+  pull_request:
+    paths:
+      - apps/desktop/**
+      - packages/db-core/**
+      - pnpm-lock.yaml
+      - .github/workflows/package.yml
+  push:
+    branches: [main]
+    paths:
+      - apps/desktop/**
+      - packages/db-core/**
+      - pnpm-lock.yaml
+      - .github/workflows/package.yml
+  workflow_dispatch:
+
+concurrency:
+  group: package-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke del paquete (macOS arm64)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Comprobar arquitectura
+        run: test "$(uname -m)" = "arm64"
+
+      - name: Instalar pnpm (versión de packageManager)
+        uses: pnpm/setup@v2
+        with:
+          cache: true
+          install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Versión de Electron
+        id: electron
+        run: echo "version=$(node -p "require('./apps/desktop/package.json').devDependencies.electron")" >> "$GITHUB_OUTPUT"
+
+      - name: Caché del binario de Electron y de sus cabeceras
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/.electron-gyp
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ steps.electron.outputs.version }}
+
+      - run: pnpm install --frozen-lockfile
+
+      # `pack` empaqueta lo que haya en apps/desktop/out: hay que construirlo antes.
+      - run: pnpm build
+      - name: Empaquetar el .app
+        run: pnpm --filter @strata/desktop run pack
+      - name: Smoke del paquete
+        run: node apps/desktop/scripts/smoke-packaged.mjs

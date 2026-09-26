@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # macOS Apple Silicon (ADR 0002): el postinstall recompila better-sqlite3 contra Electron 44
+  # y necesita las Xcode Command Line Tools, que ya traen los runners.
+  verify:
+    name: Lint, tipos, tests y build (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Comprobar arquitectura
+        run: test "$(uname -m)" = "arm64"
+
+      - name: Instalar pnpm (versión de packageManager)
+        uses: pnpm/setup@v2
+        with:
+          cache: true
+          install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Versión de Electron
+        id: electron
+        run: echo "version=$(node -p "require('./apps/desktop/package.json').devDependencies.electron")" >> "$GITHUB_OUTPUT"
+
+      - name: Caché del binario de Electron y de sus cabeceras
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/.electron-gyp
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ steps.electron.outputs.version }}
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  # Los runners macOS no traen Docker: PostgreSQL 13 (mínimo, ADR 0003) y 17 corren como service container
+  # en Linux. Con STRATA_TEST_PG_URL la suite usa ese servidor en lugar de levantar contenedores propios.
+  integration:
+    name: Integración PostgreSQL ${{ matrix.postgres }} (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ['13', '17']
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_PASSWORD: strata-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      STRATA_TEST_PG_URL: postgres://postgres:strata-ci@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar pnpm (versión de packageManager)
+        uses: pnpm/setup@v2
+        with:
+          cache: true
+          install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Versión de Electron
+        id: electron
+        run: echo "version=$(node -p "require('./apps/desktop/package.json').devDependencies.electron")" >> "$GITHUB_OUTPUT"
+
+      - name: Caché del binario de Electron y de sus cabeceras
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.electron-gyp
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ steps.electron.outputs.version }}
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:integration
