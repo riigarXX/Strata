@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Hardened Runtime: V8 genera código nativo en tiempo de ejecución (JIT). Sin esto la app no arranca firmada. -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <!-- Red saliente (PostgreSQL). Solo tiene efecto si algún día se activa el App Sandbox; el Hardened Runtime no restringe la red. -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+</dict>
+</plist>

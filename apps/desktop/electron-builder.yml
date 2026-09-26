@@ -1,0 +1,91 @@
+# Empaquetado de Strata (macOS arm64, ADR 0002). Guía completa en docs/packaging.md.
+# La versión sale de apps/desktop/package.json; no hay publicación ni auto-actualización.
+
+# PROVISIONAL: identidad reverse-DNS a confirmar por el propietario del proyecto. Cambiarla en una
+# app ya distribuida reinicia permisos de macOS y la entrada de Keychain de safeStorage.
+appId: dev.strata.app
+productName: Strata
+copyright: Copyright © 2026 Strata
+
+directories:
+  output: release
+  buildResources: build
+
+# Solo el build de electron-vite. El resto de dependencias llega por `package.json#dependencies`, que
+# debe contener únicamente lo que main carga en runtime sin bundlear (better-sqlite3, pg, pg-cursor):
+# vue, pinia, codemirror, @strata/*… van en devDependencies porque Vite ya los incluye en out/.
+files:
+  - out/**
+  - '!**/*.map'
+  # better-sqlite3 llega con las fuentes de SQLite, el árbol de compilación y una copia duplicada del .node
+  # en bin/: en runtime solo hacen falta lib/ y build/Release/better_sqlite3.node.
+  - '!node_modules/better-sqlite3/{deps,src,bin}/**'
+  - '!node_modules/better-sqlite3/build/**'
+  - node_modules/better-sqlite3/build/Release/better_sqlite3.node
+  # prebuild-install (y su árbol) solo descarga binarios al instalar; better-sqlite3 lo declara como dependencia normal.
+  - '!node_modules/{prebuild-install,base64-js,bl,buffer,chownr,decompress-response,deep-extend,detect-libc,end-of-stream,expand-template,fs-constants,github-from-package,ieee754,inherits,ini,mimic-response,minimist,mkdirp-classic,napi-build-utils,node-abi,once,pump,rc,readable-stream,safe-buffer,semver,simple-concat,simple-get,string_decoder,strip-json-comments,tar-fs,tar-stream,tunnel-agent,util-deprecate,wrappy}/**'
+
+asar: true
+# Un .node no se puede cargar con dlopen desde dentro de un asar: el binario va fuera, en app.asar.unpacked.
+# Electron redirige el require() automáticamente.
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+
+# Recompila better-sqlite3 contra Electron (ABI 149) al empaquetar. El postinstall de apps/desktop
+# ya deja ese mismo binario en node_modules, así que el rebuild es idempotente y no rompe pnpm test.
+npmRebuild: true
+buildDependenciesFromSource: false
+
+# Ni actualizaciones ni publicación (sin app-update.yml).
+publish: null
+
+# Fuses de Electron, aplicados justo antes de firmar. Sin bloque `electronFuses` electron-builder no toca ninguno.
+electronFuses:
+  # ELECTRON_RUN_AS_NODE convertiría el binario de la app en un intérprete de Node arbitrario.
+  runAsNode: false
+  # NODE_OPTIONS permitiría inyectar código en main desde el entorno.
+  enableNodeOptionsEnvironmentVariable: false
+  # --inspect / --inspect-brk abren el depurador de Node en main (acceso total a credenciales y drivers).
+  enableNodeCliInspectArguments: false
+  # Cookies cifradas en disco con la clave del Keychain.
+  enableCookieEncryption: true
+  # El hash del asar se valida al arrancar (ElectronAsarIntegrity en Info.plist)...
+  enableEmbeddedAsarIntegrityValidation: true
+  # ...y la app solo se carga desde app.asar, nunca desde un directorio `app/` sustituido.
+  onlyLoadAppFromAsar: true
+  # El renderer se sirve por el esquema propio app:// (ADR 0011), no por file://: las páginas file:// ya no existen y no
+  # necesitan los privilegios extra que este fuse les concede (p. ej. cargar módulos con `crossorigin` desde file://).
+  grantFileProtocolExtraPrivileges: false
+  # Modificar el binario invalida su firma ad-hoc, y en arm64 un binario con firma inválida no arranca.
+  # Sin identidad de firma no hay un paso posterior que la rehaga, así que la restablece @electron/fuses.
+  resetAdHocDarwinSignature: true
+
+mac:
+  category: public.app-category.developer-tools
+  icon: build/icon.icns
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  target:
+    - target: dmg
+      arch: [arm64]
+    - target: zip
+      arch: [arm64]
+  extendInfo:
+    # macOS 15 exige un texto que explique el aviso de acceso a la red local (servidores de BBDD en la LAN).
+    NSLocalNetworkUsageDescription: Strata se conecta a servidores de bases de datos de tu red local.
+
+  # --- Firma y notarización: DESACTIVADAS (no hay cuentas de Apple; Fase 6 del plan) ---
+  identity: null
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Para firmar y notarizar cuando existan las cuentas, ver docs/packaging.md:
+  #   1. Sustituir `identity: null` por `identity: "Developer ID Application: <Nombre> (<TEAMID>)"`
+  #      (o quitar la línea y exportar CSC_LINK / CSC_KEY_PASSWORD en CI).
+  #   2. Añadir `notarize: true` y exportar APPLE_API_KEY, APPLE_API_KEY_ID y APPLE_API_ISSUER
+  #      (o APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD y APPLE_TEAM_ID).
+  #   3. Quitar `resetAdHocDarwinSignature`: electron-builder ya firma justo después de los fuses.
+  #   4. Cambiar `dmg.sign` a true.
+
+dmg:
+  sign: false
