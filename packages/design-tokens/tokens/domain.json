@@ -1,0 +1,63 @@
+{
+  "$description": "Capa 4, dominio BBDD (esbozo). Nuevo respecto a BRAID; solo referencia semanticos. Los tipos de datos quedan para una tarea posterior.",
+  "query": {
+    "running": {
+      "$type": "color",
+      "$value": "{accent.secondary}",
+      "$description": "Consulta en ejecucion."
+    },
+    "glyph": {
+      "running": {
+        "$type": "string",
+        "$value": "{connection.glyph.connecting}",
+        "$description": "Simbolo que acompana a query.running. Con movimiento reducido no gira: es la alternativa estatica al spinner."
+      }
+    }
+  },
+  "transaction": {
+    "active": {
+      "$type": "color",
+      "$value": "{status.warning}",
+      "$description": "Transaccion abierta sin confirmar."
+    },
+    "glyph": {
+      "active": {
+        "$type": "string",
+        "$value": "{status.glyph.warning}",
+        "$description": "Simbolo que acompana a transaction.active."
+      }
+    }
+  },
+  "connection": {
+    "online": {
+      "$type": "color",
+      "$value": "{status.success}",
+      "$description": "Conexion activa. No debe comunicarse solo por color: acompanar con connection.glyph.online."
+    },
+    "connecting": {
+      "$type": "color",
+      "$value": "{status.warning}",
+      "$description": "Conexion en curso. Acompanar con connection.glyph.connecting y el texto del estado."
+    },
+    "offline": {
+      "$type": "color",
+      "$value": "{text.muted}",
+      "$description": "Conexion inactiva. No debe comunicarse solo por color: acompanar con connection.glyph.offline."
+    },
+    "glyph": {
+      "$type": "string",
+      "online": {
+        "$value": "{status.glyph.active}",
+        "$description": "Simbolo que acompana a connection.online."
+      },
+      "offline": {
+        "$value": "{status.glyph.inactive}",
+        "$description": "Simbolo que acompana a connection.offline."
+      },
+      "connecting": {
+        "$value": "◌",
+        "$description": "Circulo punteado: conexion en curso. Simbolo que acompana a connection.connecting."
+      }
+    }
+  }
+}

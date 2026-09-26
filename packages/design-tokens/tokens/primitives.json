@@ -1,0 +1,172 @@
+{
+  "$description": "Capa 1, primitivos. Unica capa donde se admiten valores de color literales. Extraidos de BRAID (apps/renderer/src/index.css y tailwind.config.ts).",
+  "color": {
+    "$type": "color",
+    "white": { "$value": "#FFFFFF" },
+    "black": { "$value": "#000000" },
+    "slate": {
+      "50": { "$value": "#F8FAFC" },
+      "100": { "$value": "#F1F5F9" },
+      "200": { "$value": "#E2E8F0" },
+      "300": { "$value": "#CBD5E1" },
+      "400": { "$value": "#94A3B8" },
+      "500": { "$value": "#64748B" },
+      "600": { "$value": "#475569" },
+      "700": { "$value": "#334155" },
+      "750": {
+        "$value": "#272F42",
+        "$description": "Personalizado de BRAID (--color-muted oscuro); no pertenece a la escala slate de Tailwind."
+      },
+      "800": { "$value": "#1E293B" },
+      "850": {
+        "$value": "#1B2336",
+        "$description": "Personalizado de BRAID (--color-card oscuro); no pertenece a la escala slate de Tailwind."
+      },
+      "900": { "$value": "#0F172A" }
+    },
+    "green": {
+      "500": { "$value": "#22C55E" },
+      "600": { "$value": "#16A34A" },
+      "700": { "$value": "#15803D" },
+      "800": { "$value": "#166534" }
+    },
+    "red": {
+      "400": { "$value": "#F87171" },
+      "500": {
+        "$value": "#EF4444",
+        "$description": "Original de BRAID para status.error oscuro. Solo como fondo de action.destructive-hover oscuro: 4.16:1 sobre surface.card no alcanza AA como texto, por eso status.error usa red.400."
+      },
+      "600": { "$value": "#DC2626" },
+      "700": { "$value": "#B91C1C" }
+    },
+    "amber": {
+      "500": { "$value": "#F59E0B" },
+      "600": {
+        "$value": "#D97706",
+        "$description": "Original de BRAID para status.warning claro. Sin uso semantico: 3.19:1 sobre surface.card no alcanza AA como texto; se sustituye por amber.700."
+      },
+      "700": { "$value": "#B45309" },
+      "800": { "$value": "#92400E" }
+    },
+    "purple": {
+      "400": { "$value": "#A78BFA" },
+      "600": { "$value": "#7C3AED" },
+      "700": { "$value": "#6D28D9" }
+    },
+    "tint": {
+      "$description": "Tintes opacos: mezcla de un color de marca o de estado sobre surface.canvas al porcentaje indicado (nombre: <color>-<tema>-<porcentaje>). Se calculan opacos, y no con transparencia, para poder medir su contraste WCAG con el texto que llevan encima (seleccion, coincidencias).",
+      "green-dark-20": { "$value": "#133A34" },
+      "green-dark-35": { "$value": "#16543C" },
+      "red-dark-30": { "$value": "#55323F" },
+      "green-light-20": { "$value": "#CBE2D6" },
+      "green-light-30": { "$value": "#B4D5C3" },
+      "red-light-20": { "$value": "#F2D0D1" }
+    },
+    "alpha": {
+      "$description": "Colores con transparencia usados por glass, glow y sombras. Nombre: <base>-<porcentaje de opacidad>.",
+      "white-8": { "$value": "rgba(255, 255, 255, 0.08)" },
+      "white-80": { "$value": "rgba(255, 255, 255, 0.8)" },
+      "black-20": { "$value": "rgba(0, 0, 0, 0.2)" },
+      "black-30": { "$value": "rgba(0, 0, 0, 0.3)" },
+      "slate-900-8": { "$value": "rgba(15, 23, 42, 0.08)" },
+      "slate-900-16": { "$value": "rgba(15, 23, 42, 0.16)" },
+      "slate-900-40": { "$value": "rgba(15, 23, 42, 0.4)" },
+      "slate-900-70": { "$value": "rgba(15, 23, 42, 0.7)" },
+      "green-500-10": { "$value": "rgba(34, 197, 94, 0.1)" },
+      "green-500-15": { "$value": "rgba(34, 197, 94, 0.15)" },
+      "green-500-30": { "$value": "rgba(34, 197, 94, 0.3)" },
+      "green-600-10": { "$value": "rgba(22, 163, 74, 0.1)" },
+      "green-600-20": { "$value": "rgba(22, 163, 74, 0.2)" },
+      "green-600-35": { "$value": "rgba(22, 163, 74, 0.35)" }
+    }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": ["IBM Plex Sans", "system-ui", "sans-serif"],
+        "$description": "Interfaz. Los ficheros de fuente no forman parte de este paquete (BRAID los carga con @fontsource)."
+      },
+      "mono": {
+        "$value": ["JetBrains Mono", "monospace"],
+        "$description": "SQL, datos y metadatos tecnicos."
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "light": {
+        "$value": 300
+      },
+      "regular": {
+        "$value": 400
+      },
+      "medium": {
+        "$value": 500
+      },
+      "semibold": {
+        "$value": 600
+      },
+      "bold": {
+        "$value": 700
+      }
+    },
+    "size": {
+      "$type": "dimension",
+      "xs": { "$value": "12px" },
+      "sm": { "$value": "13px" },
+      "base": {
+        "$value": "14px",
+        "$description": "Tamano base del body en BRAID."
+      },
+      "md": { "$value": "15px" },
+      "lg": { "$value": "17px" },
+      "xl": { "$value": "20px" },
+      "2xl": { "$value": "28px" },
+      "3xl": { "$value": "36px" }
+    },
+    "lineHeight": {
+      "$type": "dimension",
+      "xs": { "$value": "16px" },
+      "sm": { "$value": "18px" },
+      "base": {
+        "$value": "22px",
+        "$description": "Unico line-height base. BRAID declaraba 22px en tailwind.config.ts pero 1.6 (22.4px) en el body de index.css; el body debe usar este token y no un factor sin unidad."
+      },
+      "md": { "$value": "24px" },
+      "lg": { "$value": "28px" },
+      "xl": { "$value": "28px" },
+      "2xl": { "$value": "36px" },
+      "3xl": { "$value": "44px" }
+    }
+  },
+  "spacing": {
+    "$type": "dimension",
+    "$description": "Escala de espaciado con base de 4px: el paso N equivale a N x 4px. sidebar y header son medidas de layout, tambien multiplos de 4px. BRAID no define escala propia (usa la implicita de Tailwind), asi que esta es la unica fuente de espaciado.",
+    "0": { "$value": "0px" },
+    "1": { "$value": "4px" },
+    "2": { "$value": "8px" },
+    "3": { "$value": "12px" },
+    "4": { "$value": "16px" },
+    "5": { "$value": "20px" },
+    "6": { "$value": "24px" },
+    "8": { "$value": "32px" },
+    "10": { "$value": "40px" },
+    "12": { "$value": "48px" },
+    "16": { "$value": "64px" },
+    "sidebar": { "$value": "240px" },
+    "header": { "$value": "52px" }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Escala de radios. Sustituye las excepciones hardcodeadas de BRAID: 3px del scrollbar -> xs y 12px de .card-glass -> md.",
+    "xs": { "$value": "4px" },
+    "sm": { "$value": "6px" },
+    "md": { "$value": "10px" },
+    "lg": { "$value": "14px" },
+    "xl": { "$value": "18px" },
+    "full": {
+      "$value": "9999px",
+      "$description": "Pildoras e indicadores circulares."
+    }
+  }
+}

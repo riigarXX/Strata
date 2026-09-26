@@ -1,0 +1,185 @@
+{
+  "$description": "Capa 2, semanticos del tema oscuro (por defecto en BRAID). Solo referencian primitivos.",
+  "surface": {
+    "$type": "color",
+    "canvas": { "$value": "{color.slate.900}", "$description": "--color-background" },
+    "card": { "$value": "{color.slate.850}", "$description": "--color-card" },
+    "elevated": {
+      "$value": "{color.slate.800}",
+      "$description": "--color-primary; tambien fondo de hover de .card-glass-hover."
+    },
+    "secondary": { "$value": "{color.slate.700}", "$description": "--color-secondary" },
+    "muted": { "$value": "{color.slate.750}", "$description": "--color-muted" },
+    "subtle": {
+      "$value": "{color.slate.800}",
+      "$description": "Tinte apenas perceptible sobre surface.canvas (1.24:1): filas alternas del grid y linea activa del editor. text.primary y text.muted cumplen AA encima."
+    }
+  },
+  "text": {
+    "$type": "color",
+    "primary": {
+      "$value": "{color.slate.50}",
+      "$description": "--color-foreground y --color-card-foreground"
+    },
+    "muted": {
+      "$value": "{color.slate.400}",
+      "$description": "--color-muted-foreground. AA sobre canvas, card, elevated y muted; sobre surface.secondary (4.04:1) usar text.on-secondary."
+    },
+    "on-elevated": { "$value": "{color.white}", "$description": "--color-on-primary" },
+    "on-secondary": { "$value": "{color.white}", "$description": "--color-on-secondary" },
+    "on-action-primary": {
+      "$value": "{color.slate.900}",
+      "$description": "--color-on-accent. 7.83:1 sobre action.primary y 5.42:1 sobre action.primary-hover."
+    },
+    "on-error": {
+      "$value": "{color.black}",
+      "$description": "--color-on-destructive. 7.59:1 sobre status.error."
+    }
+  },
+  "border": {
+    "$type": "color",
+    "subtle": {
+      "$value": "{color.alpha.white-8}",
+      "$description": "--glass-border. Decorativo: no basta por si solo para delimitar un control (WCAG 1.4.11)."
+    },
+    "default": {
+      "$value": "{color.slate.600}",
+      "$description": "--color-border. Decorativo: no basta por si solo para delimitar un control (WCAG 1.4.11)."
+    },
+    "strong": {
+      "$value": "{color.slate.500}",
+      "$description": "Borde de control (input, select, boton secundario). Al menos 3:1 sobre canvas, card, elevated y sobre el fondo de input, como exige WCAG 1.4.11."
+    }
+  },
+  "action": {
+    "$type": "color",
+    "primary": { "$value": "{color.green.500}", "$description": "--color-accent" },
+    "primary-hover": { "$value": "{color.green.600}", "$description": "--color-accent-hover" },
+    "destructive-hover": {
+      "$value": "{color.red.500}",
+      "$description": "Fondo de button.destructive al pasar el cursor. Texto on-error con al menos 4.5:1."
+    }
+  },
+  "accent": {
+    "$type": "color",
+    "secondary": { "$value": "{color.purple.400}", "$description": "--color-purple" }
+  },
+  "selection": {
+    "$type": "color",
+    "bg": {
+      "$value": "{color.tint.green-dark-20}",
+      "$description": "Fondo de una seleccion (celdas del grid, texto del editor): tinte opaco del verde de accion sobre surface.canvas. Texto, sintaxis y text.muted con al menos 4.5:1 encima."
+    },
+    "bg-inactive": {
+      "$value": "{color.slate.750}",
+      "$description": "Seleccion de un componente sin foco: neutra, para distinguirla de la activa."
+    }
+  },
+  "highlight": {
+    "$type": "color",
+    "match-bg": {
+      "$value": "{color.tint.green-dark-35}",
+      "$description": "Coincidencia que se resalta: parentesis emparejado, texto buscado. text.primary con al menos 4.5:1 encima; no basta por si solo, acompanar con contorno o subrayado."
+    },
+    "mismatch-bg": {
+      "$value": "{color.tint.red-dark-30}",
+      "$description": "Elemento sin pareja (parentesis sin cerrar). text.primary con al menos 4.5:1 encima; acompanar con contorno."
+    }
+  },
+  "syntax": {
+    "$type": "color",
+    "$description": "Colores de sintaxis del editor. Propios y no reutilizan status.*: un string no es un exito. Al menos 4.5:1 sobre surface.canvas, surface.subtle y selection.bg.",
+    "keyword": { "$value": "{color.purple.400}" },
+    "string": { "$value": "{color.green.500}" },
+    "number": { "$value": "{color.amber.500}" },
+    "comment": { "$value": "{color.slate.400}" },
+    "operator": { "$value": "{color.slate.300}" }
+  },
+  "focus": {
+    "$type": "color",
+    "ring": {
+      "$value": "{color.white}",
+      "$description": "--color-ring. Al menos 3:1 sobre todas las superficies. Usar con outline-offset de 2px o mas, de modo que el contorno quede junto a la superficie y no sobre el color de accion."
+    }
+  },
+  "status": {
+    "$type": "color",
+    "success": {
+      "$value": "{color.green.500}",
+      "$description": "--color-success. Como texto, AA sobre canvas, card y elevated. No comunicar solo con color: combinar con status.glyph.success y status.outline.success."
+    },
+    "warning": {
+      "$value": "{color.amber.500}",
+      "$description": "--color-warning. Como texto, AA sobre canvas, card y elevated. No comunicar solo con color: combinar con status.glyph.warning y status.outline.warning."
+    },
+    "error": {
+      "$value": "{color.red.400}",
+      "$description": "--color-destructive. Sube de red.500 a red.400: sobre surface.card pasa de 4.16:1 a 5.66:1 como texto. No comunicar solo con color: combinar con status.glyph.error y status.outline.error."
+    }
+  },
+  "glass": {
+    "$type": "color",
+    "bg": { "$value": "{color.alpha.slate-900-70}", "$description": "--glass-bg" }
+  },
+  "overlay": {
+    "$type": "color",
+    "scrim": {
+      "$value": "{color.alpha.slate-900-70}",
+      "$description": "Velo tras un dialogo modal. Oscurece la pagina en ambos temas para separar el dialogo del fondo."
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Sombras dependientes del tema: mismas rutas en oscuro y claro.",
+    "glass": {
+      "$value": {
+        "color": "{color.alpha.black-20}",
+        "offsetX": "0px",
+        "offsetY": "4px",
+        "blur": "24px",
+        "spread": "0px"
+      },
+      "$description": "shadow.glass de tailwind.config.ts."
+    },
+    "glass-lg": {
+      "$value": {
+        "color": "{color.alpha.black-30}",
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "32px",
+        "spread": "0px"
+      },
+      "$description": "shadow.glass-lg de tailwind.config.ts."
+    },
+    "glow-sm": {
+      "$value": {
+        "color": "{color.alpha.green-500-10}",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "10px",
+        "spread": "0px"
+      },
+      "$description": "shadow.glow-sm de tailwind.config.ts."
+    },
+    "glow-accent": {
+      "$value": {
+        "color": "{color.alpha.green-500-15}",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "20px",
+        "spread": "0px"
+      },
+      "$description": "--glow-accent"
+    },
+    "glow-ring": {
+      "$value": {
+        "color": "{color.alpha.green-500-30}",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "1px"
+      },
+      "$description": "--glow-ring. Decorativo: no es un indicador de foco, para eso esta focus.ring."
+    }
+  }
+}

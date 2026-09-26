@@ -1,0 +1,104 @@
+{
+  "$description": "Capa 3, esbozo de componentes. Solo referencian semanticos; sin equivalente directo en BRAID salvo donde se indica, por lo que los nombres son provisionales.",
+  "button": {
+    "$type": "color",
+    "primary": {
+      "bg": { "$value": "{action.primary}" },
+      "bg-hover": { "$value": "{action.primary-hover}" },
+      "fg": { "$value": "{text.on-action-primary}" }
+    },
+    "destructive": {
+      "bg": { "$value": "{status.error}" },
+      "bg-hover": { "$value": "{action.destructive-hover}" },
+      "fg": { "$value": "{text.on-error}" }
+    },
+    "secondary": {
+      "bg": { "$value": "{surface.card}" },
+      "bg-hover": { "$value": "{surface.muted}" },
+      "fg": { "$value": "{text.primary}" },
+      "border": { "$value": "{border.strong}" }
+    }
+  },
+  "input": {
+    "$type": "color",
+    "bg": { "$value": "{surface.canvas}" },
+    "fg": { "$value": "{text.primary}" },
+    "border": { "$value": "{border.strong}" },
+    "border-focus": { "$value": "{focus.ring}" }
+  },
+  "sidebar": {
+    "bg": { "$type": "color", "$value": "{surface.card}" },
+    "border": { "$type": "color", "$value": "{border.subtle}" },
+    "width": { "$type": "dimension", "$value": "{spacing.sidebar}" }
+  },
+  "tab": {
+    "$type": "color",
+    "bg-active": { "$value": "{surface.elevated}" },
+    "fg": { "$value": "{text.muted}" },
+    "fg-active": { "$value": "{text.primary}" },
+    "indicator": { "$value": "{action.primary}" }
+  },
+  "dialog": {
+    "bg": { "$type": "color", "$value": "{surface.elevated}" },
+    "border": { "$type": "color", "$value": "{border.subtle}" },
+    "shadow": { "$type": "shadow", "$value": "{shadow.glass-lg}" }
+  },
+  "editor": {
+    "bg": { "$type": "color", "$value": "{surface.canvas}" },
+    "fg": { "$type": "color", "$value": "{text.primary}" },
+    "font": { "$type": "fontFamily", "$value": "{font.family.mono}" },
+    "selection-bg": { "$type": "color", "$value": "{selection.bg}" },
+    "selection-bg-inactive": { "$type": "color", "$value": "{selection.bg-inactive}" },
+    "active-line-bg": { "$type": "color", "$value": "{surface.subtle}" },
+    "bracket-match-bg": { "$type": "color", "$value": "{highlight.match-bg}" },
+    "bracket-mismatch-bg": { "$type": "color", "$value": "{highlight.mismatch-bg}" },
+    "syntax": {
+      "$type": "color",
+      "keyword": { "$value": "{syntax.keyword}" },
+      "string": { "$value": "{syntax.string}" },
+      "number": { "$value": "{syntax.number}" },
+      "comment": { "$value": "{syntax.comment}" },
+      "operator": { "$value": "{syntax.operator}" }
+    }
+  },
+  "grid": {
+    "$type": "color",
+    "header-bg": { "$value": "{surface.secondary}" },
+    "header-fg": {
+      "$value": "{text.on-secondary}",
+      "$description": "Texto de la cabecera: text.muted no llega a AA sobre surface.secondary en oscuro (4.04:1)."
+    },
+    "gutter-bg": {
+      "$value": "{surface.card}",
+      "$description": "Columna del numero de fila."
+    },
+    "row-alt-bg": { "$value": "{surface.subtle}" },
+    "row-hover-bg": { "$value": "{surface.muted}" },
+    "selection-bg": { "$value": "{selection.bg}" },
+    "border": { "$value": "{border.default}" }
+  },
+  "toolbar": {
+    "$description": "Barra de herramientas del editor. Los simbolos acompanan a la etiqueta (nunca la sustituyen) y se consumen como contenido CSS en un elemento aria-hidden.",
+    "glyph": {
+      "$type": "string",
+      "run": {
+        "$value": "\u25B6",
+        "$description": "Triangulo de reproduccion: ejecutar."
+      },
+      "run-all": {
+        "$value": "\u25B6\u25B6",
+        "$description": "Doble triangulo de reproduccion: ejecutar todo. Distingue el boton cuando solo se ve el simbolo."
+      },
+      "cancel": { "$value": "\u25A0", "$description": "Cuadrado: cancelar la ejecucion." },
+      "settings": {
+        "$value": "\u2699\uFE0E",
+        "$description": "Engranaje con selector de presentacion de texto (U+FE0E) para que no salga como emoji."
+      },
+      "history": { "$value": "\u21BA", "$description": "Flecha circular antihoraria: historial." },
+      "ask": {
+        "$value": "\u2726\uFE0E",
+        "$description": "Estrella de cuatro puntas con selector de presentacion de texto (U+FE0E) para que no salga como emoji: asistente de IA (preguntar a la base)."
+      }
+    }
+  }
+}

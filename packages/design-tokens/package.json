@@ -1,0 +1,21 @@
+{
+  "name": "@strata/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test \"test/*.test.mjs\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./tokens.json": "./dist/tokens.json"
+  }
+}

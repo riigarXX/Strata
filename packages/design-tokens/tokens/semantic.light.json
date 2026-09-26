@@ -1,0 +1,186 @@
+{
+  "$description": "Capa 2, semanticos del tema claro. Mismas rutas que semantic.dark.json; el build valida la paridad.",
+  "surface": {
+    "$type": "color",
+    "canvas": { "$value": "{color.slate.50}", "$description": "--color-background" },
+    "card": { "$value": "{color.white}", "$description": "--color-card" },
+    "elevated": { "$value": "{color.white}", "$description": "--color-primary" },
+    "secondary": { "$value": "{color.slate.200}", "$description": "--color-secondary" },
+    "muted": { "$value": "{color.slate.200}", "$description": "--color-muted" },
+    "subtle": {
+      "$value": "{color.slate.100}",
+      "$description": "Tinte apenas perceptible sobre surface.canvas (1.05:1): filas alternas del grid y linea activa del editor. text.primary y text.muted cumplen AA encima."
+    }
+  },
+  "text": {
+    "$type": "color",
+    "primary": {
+      "$value": "{color.slate.900}",
+      "$description": "--color-foreground y --color-card-foreground"
+    },
+    "muted": {
+      "$value": "{color.slate.600}",
+      "$description": "--color-muted-foreground. Sube de slate.500 a slate.600: sobre surface.muted pasa de 3.86:1 a 6.15:1. AA sobre canvas, card, elevated y muted; sobre surface.secondary usar text.on-secondary."
+    },
+    "on-elevated": { "$value": "{color.slate.900}", "$description": "--color-on-primary" },
+    "on-secondary": { "$value": "{color.slate.900}", "$description": "--color-on-secondary" },
+    "on-action-primary": {
+      "$value": "{color.white}",
+      "$description": "--color-on-accent. 5.02:1 sobre action.primary y 7.13:1 sobre action.primary-hover (antes 3.30:1 con green.600)."
+    },
+    "on-error": {
+      "$value": "{color.white}",
+      "$description": "--color-on-destructive. 4.83:1 sobre status.error."
+    }
+  },
+  "border": {
+    "$type": "color",
+    "subtle": {
+      "$value": "{color.alpha.slate-900-8}",
+      "$description": "--glass-border. Decorativo: no basta por si solo para delimitar un control (WCAG 1.4.11)."
+    },
+    "default": {
+      "$value": "{color.slate.300}",
+      "$description": "--color-border. Decorativo: no basta por si solo para delimitar un control (WCAG 1.4.11)."
+    },
+    "strong": {
+      "$value": "{color.slate.500}",
+      "$description": "Borde de control (input, select, boton secundario). Al menos 3:1 sobre canvas, card, elevated y sobre el fondo de input, como exige WCAG 1.4.11."
+    }
+  },
+  "action": {
+    "$type": "color",
+    "primary": {
+      "$value": "{color.green.700}",
+      "$description": "--color-accent. Sube de green.600 a green.700 (mismo tono, mas oscuro): permite texto blanco AA y 4.79:1 como texto sobre canvas."
+    },
+    "primary-hover": {
+      "$value": "{color.green.800}",
+      "$description": "--color-accent-hover. Sube de green.700 a green.800 para seguir siendo mas oscuro que action.primary."
+    },
+    "destructive-hover": {
+      "$value": "{color.red.700}",
+      "$description": "Fondo de button.destructive al pasar el cursor. Texto on-error con al menos 4.5:1."
+    }
+  },
+  "accent": {
+    "$type": "color",
+    "secondary": { "$value": "{color.purple.600}", "$description": "--color-purple" }
+  },
+  "selection": {
+    "$type": "color",
+    "bg": {
+      "$value": "{color.tint.green-light-20}",
+      "$description": "Fondo de una seleccion (celdas del grid, texto del editor): tinte opaco del verde de accion sobre surface.canvas. Texto, sintaxis y text.muted con al menos 4.5:1 encima."
+    },
+    "bg-inactive": {
+      "$value": "{color.slate.300}",
+      "$description": "Seleccion de un componente sin foco: neutra, para distinguirla de la activa."
+    }
+  },
+  "highlight": {
+    "$type": "color",
+    "match-bg": {
+      "$value": "{color.tint.green-light-30}",
+      "$description": "Coincidencia que se resalta: parentesis emparejado, texto buscado. text.primary con al menos 4.5:1 encima; no basta por si solo, acompanar con contorno o subrayado."
+    },
+    "mismatch-bg": {
+      "$value": "{color.tint.red-light-20}",
+      "$description": "Elemento sin pareja (parentesis sin cerrar). text.primary con al menos 4.5:1 encima; acompanar con contorno."
+    }
+  },
+  "syntax": {
+    "$type": "color",
+    "$description": "Colores de sintaxis del editor. Propios y no reutilizan status.*: un string no es un exito. Al menos 4.5:1 sobre surface.canvas, surface.subtle y selection.bg.",
+    "keyword": { "$value": "{color.purple.700}" },
+    "string": { "$value": "{color.green.800}" },
+    "number": { "$value": "{color.amber.800}" },
+    "comment": { "$value": "{color.slate.600}" },
+    "operator": { "$value": "{color.slate.700}" }
+  },
+  "focus": {
+    "$type": "color",
+    "ring": {
+      "$value": "{color.slate.900}",
+      "$description": "--color-ring. Al menos 3:1 sobre todas las superficies. Usar con outline-offset de 2px o mas, de modo que el contorno quede junto a la superficie y no sobre el color de accion."
+    }
+  },
+  "status": {
+    "$type": "color",
+    "success": {
+      "$value": "{color.green.700}",
+      "$description": "--color-success. Sube de green.600 a green.700: sobre surface.canvas pasa de 3.15:1 a 4.79:1 como texto. No comunicar solo con color: combinar con status.glyph.success y status.outline.success."
+    },
+    "warning": {
+      "$value": "{color.amber.700}",
+      "$description": "--color-warning. Sube de amber.600 a amber.700: sobre surface.card pasa de 3.19:1 a 5.02:1 como texto. No comunicar solo con color: combinar con status.glyph.warning y status.outline.warning."
+    },
+    "error": {
+      "$value": "{color.red.600}",
+      "$description": "--color-destructive. 4.62:1 sobre canvas y 4.83:1 sobre card como texto. No comunicar solo con color: combinar con status.glyph.error y status.outline.error."
+    }
+  },
+  "glass": {
+    "$type": "color",
+    "bg": { "$value": "{color.alpha.white-80}", "$description": "--glass-bg" }
+  },
+  "overlay": {
+    "$type": "color",
+    "scrim": {
+      "$value": "{color.alpha.slate-900-40}",
+      "$description": "Velo tras un dialogo modal. Oscurece la pagina en ambos temas para separar el dialogo del fondo."
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Sombras dependientes del tema: mismas rutas en oscuro y claro. En claro usan tinta slate en lugar de negro puro.",
+    "glass": {
+      "$value": {
+        "color": "{color.alpha.slate-900-8}",
+        "offsetX": "0px",
+        "offsetY": "4px",
+        "blur": "24px",
+        "spread": "0px"
+      },
+      "$description": "Sustituye el rgba hardcodeado de .light .card-glass-hover."
+    },
+    "glass-lg": {
+      "$value": {
+        "color": "{color.alpha.slate-900-16}",
+        "offsetX": "0px",
+        "offsetY": "8px",
+        "blur": "32px",
+        "spread": "0px"
+      }
+    },
+    "glow-sm": {
+      "$value": {
+        "color": "{color.alpha.green-600-10}",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "10px",
+        "spread": "0px"
+      }
+    },
+    "glow-accent": {
+      "$value": {
+        "color": "{color.alpha.green-600-20}",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "20px",
+        "spread": "0px"
+      },
+      "$description": "--glow-accent"
+    },
+    "glow-ring": {
+      "$value": {
+        "color": "{color.alpha.green-600-35}",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "1px"
+      },
+      "$description": "--glow-ring. Decorativo: no es un indicador de foco, para eso esta focus.ring."
+    }
+  }
+}

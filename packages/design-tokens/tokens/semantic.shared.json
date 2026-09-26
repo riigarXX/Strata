@@ -1,0 +1,81 @@
+{
+  "$description": "Capa 2, semanticos identicos en ambos temas.",
+  "glass": {
+    "blur": {
+      "$type": "dimension",
+      "$value": "16px",
+      "$description": "--glass-blur. Unico valor de blur para todas las superficies glass (.glass, .glass-subtle y .card-glass); sustituye los 12px hardcodeados de BRAID."
+    }
+  },
+  "status": {
+    "glyph": {
+      "$type": "string",
+      "$description": "Simbolo por estado, para no comunicar solo con color (verde/rojo). Se consume como contenido CSS (p. ej. ::before { content: var(--status-glyph-error) }) junto a un texto accesible o aria-label; el uso en componentes es de tareas de UI.",
+      "success": { "$value": "✓", "$description": "Marca de verificacion." },
+      "warning": { "$value": "▲", "$description": "Triangulo." },
+      "error": { "$value": "✕", "$description": "Cruz." },
+      "active": { "$value": "●", "$description": "Circulo relleno: activo o conectado." },
+      "inactive": { "$value": "○", "$description": "Circulo vacio: inactivo o desconectado." }
+    },
+    "outline": {
+      "$type": "strokeStyle",
+      "$description": "Patron de trazo por estado, alternativa no cromatica al color de borde en badges y campos. double solo se distingue de solid con un ancho de borde de 3px o mas.",
+      "success": { "$value": "solid" },
+      "warning": { "$value": "dashed" },
+      "error": { "$value": "double" }
+    }
+  },
+  "motion": {
+    "$description": "Movimiento. Cada token de duracion declara en $extensions.com.strata.reducedMotion el valor que toma bajo prefers-reduced-motion: reduce; el build genera ese @media. Es ~0 y no 0 para que transitionend y animationend se sigan disparando y los estados finales se apliquen. Todo componente debe usar estos tokens en lugar de duraciones literales.",
+    "duration": {
+      "$type": "duration",
+      "instant": {
+        "$value": "100ms",
+        "$extensions": { "com.strata": { "reducedMotion": "0.01ms" } }
+      },
+      "fast": {
+        "$value": "150ms",
+        "$description": "Transiciones de color y opacidad (duration-150 en BRAID).",
+        "$extensions": { "com.strata": { "reducedMotion": "0.01ms" } }
+      },
+      "base": {
+        "$value": "200ms",
+        "$description": "Entradas fade-in y scale-in de BRAID.",
+        "$extensions": { "com.strata": { "reducedMotion": "0.01ms" } }
+      },
+      "slow": {
+        "$value": "300ms",
+        "$description": "Entradas slide-up y slide-down de BRAID.",
+        "$extensions": { "com.strata": { "reducedMotion": "0.01ms" } }
+      },
+      "spin": {
+        "$value": "1000ms",
+        "$description": "Vuelta completa de un spinner. Con movimiento reducido el spinner deja de girar: el componente debe mostrar una alternativa estatica (texto o icono).",
+        "$extensions": { "com.strata": { "reducedMotion": "0.01ms" } }
+      },
+      "pulse": {
+        "$value": "2000ms",
+        "$description": "Ciclo de pulso ambiental (glow-pulse de BRAID).",
+        "$extensions": { "com.strata": { "reducedMotion": "0.01ms" } }
+      }
+    },
+    "easing": {
+      "$type": "cubicBezier",
+      "out": { "$value": [0, 0, 0.58, 1], "$description": "Equivale a ease-out." },
+      "in-out": { "$value": [0.42, 0, 0.58, 1], "$description": "Equivale a ease-in-out." },
+      "expo-out": {
+        "$value": [0.16, 1, 0.3, 1],
+        "$description": "Entradas de dialogos y paneles (slide-up, scale-in de BRAID)."
+      },
+      "linear": { "$value": [0, 0, 1, 1] }
+    },
+    "iteration": {
+      "$type": "keyword",
+      "loop": {
+        "$value": "infinite",
+        "$description": "animation-iteration-count de animaciones en bucle. Con movimiento reducido pasa a 1: una duracion ~0 repetida sin fin parpadearia.",
+        "$extensions": { "com.strata": { "reducedMotion": "1" } }
+      }
+    }
+  }
+}
