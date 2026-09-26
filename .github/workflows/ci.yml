@@ -106,3 +106,49 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:integration
+
+  # Abre ventanas reales de Electron sobre el build sin empaquetar; los runners macOS alojados tienen
+  # sesión gráfica (como el smoke de package.yml). Sin Docker ni STRATA_TEST_PG_URL, los specs de
+  # PostgreSQL se saltan solos: los cubre el job integration.
+  e2e:
+    name: E2E Playwright (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Instalar pnpm (versión de packageManager)
+        uses: pnpm/setup@v2
+        with:
+          cache: true
+          install: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Versión de Electron
+        id: electron
+        run: echo "version=$(node -p "require('./apps/desktop/package.json').devDependencies.electron")" >> "$GITHUB_OUTPUT"
+
+      - name: Caché del binario de Electron y de sus cabeceras
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/electron
+            ~/.electron-gyp
+          key: electron-${{ runner.os }}-${{ runner.arch }}-${{ steps.electron.outputs.version }}
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:e2e
+
+      - name: Subir resultados de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            apps/desktop/test-results/
+            apps/desktop/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

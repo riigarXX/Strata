@@ -195,12 +195,13 @@ Los tests unitarios no bastan para el aislamiento, la CSP ni el empaquetado. La 
 
 ## CI (GitHub Actions)
 
-Los workflows viven en `.github/workflows/`. **Todavía no se han ejecutado nunca**: el repositorio no tiene remoto en GitHub. Se validaron con `actionlint` y sus pasos equivalentes se ejecutaron en local, pero la primera ejecución real en Actions puede necesitar ajustes. Al crear el remoto, no hay que configurar secretos ni variables: ningún workflow los usa.
+Los workflows viven en `.github/workflows/`. Ningún workflow necesita secretos ni variables.
 
 | Workflow | Cuándo corre | Qué hace |
 |---|---|---|
 | `ci.yml`, job `verify` (macOS Apple Silicon, `macos-latest`) | Cada pull request, push a `main` y a mano | `pnpm install --frozen-lockfile` (el `postinstall` recompila `better-sqlite3`; las Xcode CLT ya vienen en el runner), `lint` (incluye colores), `format:check`, `typecheck`, `test` y `build` |
 | `ci.yml`, job `integration` (Linux, matriz `13` y `17`) | Igual | `pnpm test:integration` contra un *service container* `postgres:<versión>`. Los runners macOS no traen Docker, por eso va en Linux |
+| `ci.yml`, job `e2e` (macOS Apple Silicon) | Igual | `pnpm test:e2e`: construye la app y ejecuta los E2E de Playwright con ventanas reales de Electron (el runner tiene sesión gráfica). Si falla, sube `test-results/` y `playwright-report/` de `apps/desktop` como artefacto `playwright-results` (7 días) |
 | `package.yml` (macOS Apple Silicon) | Pull request o push a `main` que cambie `apps/desktop/**`, `packages/db-core/**`, `pnpm-lock.yaml` o el propio workflow; y a mano (`workflow_dispatch`) | `pnpm build`, `pnpm --filter @strata/desktop run pack` y `apps/desktop/scripts/smoke-packaged.mjs` |
 
 Notas:
@@ -209,7 +210,7 @@ Notas:
 - `apps/desktop/electron-builder.yml` está dentro de `apps/desktop/**`, así que un cambio en él dispara `package.yml`. Los demás paquetes (`contracts`, `commands`, `design-tokens`) no lo disparan por sí solos, aunque acaban dentro del bundle: si un cambio ahí puede afectar al paquete, lánzalo a mano.
 - Sobre PostgreSQL: la suite usa `STRATA_TEST_PG_URL` (`postgres://postgres:strata-ci@localhost:5432/postgres` en el job) y entonces prueba **un** servidor externo en lugar de levantar sus propios contenedores. Por eso hay un job por versión y no una variable por versión. Ese servidor no acepta TLS, así que los 2 tests de TLS se saltan en CI y solo corren en local con Docker (`pnpm test:integration` sin variable).
 - El smoke solo funciona en macOS y necesita sesión gráfica: el runner la tiene, un contenedor no.
-- El E2E con Playwright (`pnpm test:e2e`, ver arriba) todavía no está en los workflows. Se añadirá como job propio (macOS con sesión gráfica, sobre el build sin empaquetar); allí no hay Docker, así que el spec de PostgreSQL se salta salvo que se le dé un servidor con `STRATA_TEST_PG_URL`.
+- El job `e2e` corre sobre el build sin empaquetar. En macOS no hay Docker, así que el spec de PostgreSQL se salta salvo que se le dé un servidor con `STRATA_TEST_PG_URL` (ya lo cubre el job `integration`). El reporter es `list`, por lo que `playwright-report/` solo existirá si se configura otro; los artefactos con trazas viven en `test-results/`.
 
 ### Reproducir el CI en local
 

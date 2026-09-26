@@ -12,5 +12,5 @@ export default defineConfig({
   forbidOnly: !!process.env['CI'],
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  reporter: [['list']],
+  reporter: [['list'], ['html', { open: 'never' }]],
 })
