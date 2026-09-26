@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && vue-tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.e2e.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "screenshots": "playwright test -c playwright.screenshots.config.ts",
     "icon": "node build/make-icon.mjs",
     "pack": "electron-builder --mac --arm64 --dir",
     "dist": "electron-builder --mac --arm64",

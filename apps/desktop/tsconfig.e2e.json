@@ -1,6 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["playwright.config.ts", "e2e/**/*", "scripts/smoke-packaged.mjs"],
+  "include": [
+    "playwright.config.ts",
+    "playwright.screenshots.config.ts",
+    "e2e/**/*",
+    "scripts/smoke-packaged.mjs"
+  ],
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,

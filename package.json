@@ -15,6 +15,7 @@
     "test": "pnpm -r test && pnpm test:scripts",
     "test:scripts": "node --test \"scripts/*.test.mjs\"",
     "test:e2e": "pnpm build && pnpm --filter @strata/desktop test:e2e",
+    "screenshots": "pnpm build && pnpm --filter @strata/desktop screenshots",
     "test:integration": "pnpm --filter @strata/db-core test:integration",
     "lint": "eslint . && node scripts/check-hardcoded-colors.mjs",
     "lint:colors": "node scripts/check-hardcoded-colors.mjs",

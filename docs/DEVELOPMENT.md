@@ -34,6 +34,7 @@ No hay pasos manuales: `pnpm install` deja todo listo. Si más adelante algo rei
 | `pnpm test` | Tests unitarios y de componentes de todos los paquetes, más los de `scripts/` |
 | `pnpm test:integration` | Tests de los adapters contra PostgreSQL 13 y 17 reales (necesita Docker) |
 | `pnpm test:e2e` | Construye la app y ejecuta los tests E2E con Playwright sobre el build sin empaquetar (`apps/desktop/out`). SQLite siempre; el spec de PostgreSQL solo si hay Docker o `STRATA_TEST_PG_URL` (si no, se salta). Abre ventanas reales de Electron |
+| `pnpm screenshots` | Construye la app y regenera las capturas del README en `docs/screenshots/` (`<nombre>-dark.png` y `<nombre>-light.png`) con Playwright (`apps/desktop/e2e/screenshots/`, config `playwright.screenshots.config.ts`). Crea una base SQLite de librería ficticia en un directorio temporal y usa el Ollama falso; no forma parte de `test:e2e` ni del CI. Abre ventanas reales de Electron |
 | `pnpm dist` | Genera el instalador (`.dmg` y `.zip`, arm64, sin firma) en `apps/desktop/release/` |
 | `pnpm --filter @strata/desktop run pack` | Solo el `.app`, sin instalador. Ojo: `pnpm pack` es un comando propio de pnpm, no este script |
 
