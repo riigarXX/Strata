@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "bug",
+      "icon": "🐛",
+      "label": "Bugs",
+      "description": "Algo que ya existe y no funciona como debería. Corregir comportamiento incorrecto.",
+      "order": 10
+    },
+    {
+      "id": "feature",
+      "icon": "✨",
+      "label": "Features",
+      "description": "Funcionalidad nueva que el producto todavía no tiene.",
+      "order": 20
+    },
+    {
+      "id": "mejora",
+      "icon": "🚀",
+      "label": "Mejoras",
+      "description": "Algo que ya funciona y se pule: usabilidad, rendimiento, ergonomía, robustez.",
+      "order": 30
+    },
+    {
+      "id": "diseno",
+      "icon": "🎨",
+      "label": "Diseño y UI",
+      "description": "Estilos, layout, design system, componentes visuales y accesibilidad.",
+      "order": 40
+    },
+    {
+      "id": "refactor",
+      "icon": "♻️",
+      "label": "Refactor",
+      "description": "Reorganización interna sin cambiar el comportamiento observable. Deuda técnica.",
+      "order": 50
+    },
+    {
+      "id": "arquitectura",
+      "icon": "🏗️",
+      "label": "Arquitectura y fundaciones",
+      "description": "Estructura del proyecto, contratos de dominio, módulos base y decisiones estructurales ya tomadas.",
+      "order": 60
+    },
+    {
+      "id": "seguridad",
+      "icon": "🔐",
+      "label": "Seguridad y privacidad",
+      "description": "Permisos, datos sensibles, ejecución de código de terceros y políticas de privacidad.",
+      "order": 70
+    },
+    {
+      "id": "test",
+      "icon": "🧪",
+      "label": "Tests y QA",
+      "description": "Pruebas automáticas, fixtures, verificación y control de calidad.",
+      "order": 80
+    },
+    {
+      "id": "docs",
+      "icon": "📚",
+      "label": "Documentación",
+      "description": "README, guías de uso, documentación técnica y de integración.",
+      "order": 90
+    },
+    {
+      "id": "infra",
+      "icon": "🔧",
+      "label": "Infraestructura y build",
+      "description": "Build, empaquetado, distribución, CI, dependencias y tooling.",
+      "order": 100
+    },
+    {
+      "id": "investigacion",
+      "icon": "🔍",
+      "label": "Investigación y decisiones",
+      "description": "Spikes, comparativas y decisiones pendientes de confirmar antes de implementar.",
+      "order": 110
+    },
+    {
+      "id": "sin-clasificar",
+      "icon": "📌",
+      "label": "Sin clasificar",
+      "description": "Tareas que todavía no tienen categoría. Reclasifícalas con `update <id> category <categoría>`.",
+      "order": 120
+    }
+  ]
+}
