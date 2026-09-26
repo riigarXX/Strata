@@ -180,7 +180,7 @@ STRATA_TEST_PG_URL=postgres://postgres@localhost:5432/postgres pnpm test:e2e   #
 pnpm --filter @strata/desktop test:e2e e2e/postgres.e2e.ts                     # solo ese spec, sin reconstruir
 ```
 
-Límite conocido: `better-sqlite3` es síncrono, así que una **sola** sentencia pesada bloquea el proceso main y no se puede cancelar ni siquiera desde la app; la cancelación de SQLite solo se observa entre sentencias y entre lotes de filas. Por eso los tests de cancelación con SQLite usan un script de decenas de sentencias de ~90 ms cada una, y **no** prueban la cancelación real de una sentencia síncrona pesada. La cancelación real de una sentencia en curso solo se prueba con PostgreSQL (`pg_sleep` cancelado en el servidor).
+SQLite corre en un `worker_thread` (un hilo por sesión), así que una sentencia pesada de un solo paso no bloquea el proceso main y la cancelación y el `timeoutMs` responden de inmediato: el hilo atascado se abandona y se abre otro con la misma sesión. Límite conocido: el paso nativo abandonado sigue gastando CPU hasta terminar y la transacción abierta se pierde como un rollback. Los tests de db-core cubren este caso con una CTE recursiva de un solo paso; la decisión está en [ADR 0013](adr/0013-sqlite-en-worker-thread.md). En PostgreSQL la cancelación se prueba con `pg_sleep` cancelado en el servidor.
 
 ## Verificar de verdad, no solo con tests
 
