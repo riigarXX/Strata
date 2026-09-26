@@ -1,0 +1,8 @@
+export { useHistoryApi, type HistoryApi } from './api/use-history-api'
+export { default as ClearHistoryDialog } from './components/ClearHistoryDialog.vue'
+export { default as HistoryDialog } from './components/HistoryDialog.vue'
+export { describeCleared } from './model/presentation'
+export { useHistoryPanelStore } from './stores/history-panel'
+export { useHistoryStore } from './stores/history'
+export { useHistoryFeed } from './composables/use-history-feed'
+export { useRecordedEntriesStore } from './stores/recorded-entries'

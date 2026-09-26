@@ -1,0 +1,76 @@
+.callout {
+  --callout-color: var(--text-muted);
+  --callout-glyph: '';
+  padding: var(--spacing-2) var(--spacing-3);
+  padding-inline-start: calc(var(--spacing-3) + 1.5em);
+  border: 1px solid var(--callout-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  line-height: var(--font-line-height-sm);
+  text-indent: -1.5em;
+  overflow-wrap: anywhere;
+}
+
+.callout::before {
+  content: var(--callout-glyph);
+  display: inline-block;
+  width: 1.5em;
+  color: var(--callout-color);
+  font-weight: var(--font-weight-semibold);
+  text-indent: 0;
+}
+
+.callout--error {
+  --callout-color: var(--status-error);
+  --callout-glyph: var(--status-glyph-error);
+}
+
+.callout--success {
+  --callout-color: var(--status-success);
+  --callout-glyph: var(--status-glyph-success);
+}
+
+.callout--warning {
+  --callout-color: var(--status-warning);
+  --callout-glyph: var(--status-glyph-warning);
+}
+
+/* Aviso con un botón o varios párrafos: el glifo pasa a ser una columna y se anula la sangría francesa. */
+.callout--with-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-2) var(--spacing-3);
+  padding-inline-start: var(--spacing-3);
+  text-indent: 0;
+}
+
+.callout--with-action > p {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.callout--running {
+  --callout-color: var(--text-muted);
+}
+
+.callout--running::before {
+  width: 1em;
+  height: 1em;
+  margin-inline-end: 0.5em;
+  border: 2px solid currentColor;
+  border-block-start-color: transparent;
+  border-radius: var(--radius-full);
+  color: var(--callout-color);
+  vertical-align: -0.15em;
+  animation: spin var(--motion-duration-spin) var(--motion-easing-linear)
+    var(--motion-iteration-loop);
+}
+
+.placeholder {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--font-line-height-sm);
+}

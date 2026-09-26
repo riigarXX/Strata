@@ -1,0 +1,6 @@
+export { default as ConnectionsSidebar } from './components/ConnectionsSidebar.vue'
+export { default as ConnectionsView } from './components/ConnectionsView.vue'
+export { ENGINE_LABELS } from './model/presentation'
+export { useConnectionsStore } from './stores/connections'
+export type { ConnectionUiStatus } from './model/presentation'
+export { useConnectionsPanelStore } from './stores/connections-panel'
